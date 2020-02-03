@@ -31,7 +31,7 @@ func NewProxySwitcherExtension() *ProxySwitcherExtension {
 	}
 	self.LoadConfig()
 	if self.config.ProxyTargets == nil {
-		self.config.ProxyTargets = map[string]*ProxyInfo{}
+		self.config.ProxyTargets = map[string]*ProxyTarget{}
 	}
 	return self
 }

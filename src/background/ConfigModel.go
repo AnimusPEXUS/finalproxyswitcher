@@ -2,37 +2,10 @@ package main
 
 type (
 	ConfigModel struct {
-		ProxyTargets map[string]*ProxyInfo
+		ProxyTargets map[string]*ProxyTarget
 	}
 
-	SettingInheritance struct {
-		None                     bool
-		GetFromParent            bool
-		GetFromDefaultSubdomain  bool
-		GetFromDefaultSubrequest bool
-		GetFromDefaultDomain     bool
-		GetFromDefaultRequest    bool
-	}
-
-	HttpSetting struct {
-		Block       bool
-		Allow       bool
-		Inheritance SettingInheritance
-	}
-
-	ExtensionSettings struct {
-		// DefaultHttpSettings    HttpSettings
-		// DefaultRequestSettings RequestSettings
-		// DefaultProxySettings   ProxySettings
-	}
-
-	DomainRequestSetting struct {
-	}
-
-	DomainSubRequestSetting struct {
-	}
-
-	ProxyInfo struct {
+	ProxyTarget struct {
 		Type                     string
 		Host                     *string
 		Port                     *string

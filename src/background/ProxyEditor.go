@@ -370,7 +370,7 @@ func NewProxyTargetEditor(
 				name := self.name_text.Element.Get("value").String()
 				self.setting_name = name
 
-				info := &ProxyInfo{}
+				info := &ProxyTarget{}
 				info.Type = self.type_select.Element.Get("value").String()
 
 				if self.host_text_cb.GetJsValue("checked").Bool() {
