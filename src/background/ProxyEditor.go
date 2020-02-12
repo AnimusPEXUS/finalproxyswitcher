@@ -12,7 +12,7 @@ type ProxyTargetEditor struct {
 	setting_name string
 
 	edit_b, cancel_b, save_b, load_b, delete_b *elementtreeconstructor.ElementMutator
-	save_asterisk                              *elementtreeconstructor.ElementMutator
+	changed_asterisk                           *elementtreeconstructor.ElementMutator
 
 	type_select                        *elementtreeconstructor.ElementMutator
 	name_text                          *elementtreeconstructor.ElementMutator
@@ -119,11 +119,11 @@ func NewProxyTargetEditor(
 								AppendChildren(
 									etc.CreateTextNode("Save"),
 									etc.CreateElement("span").
-										SetStyle("display", "none").
+										ExternalUse(applySpanChangedAsterisk).
 										AppendChildren(
 											etc.CreateTextNode("*"),
 										).
-										AssignSelf(&self.save_asterisk),
+										AssignSelf(&self.changed_asterisk),
 								).
 								AssignSelf(&self.save_b),
 
@@ -408,7 +408,7 @@ func NewProxyTargetEditor(
 				self.extension.config.ProxyTargets[name] = info
 
 				go self.extension.Changed()
-				self.save_asterisk.SetStyle("display", "none")
+				self.changed_asterisk.SetStyle("display", "none")
 
 				return false
 			},
@@ -540,7 +540,7 @@ func NewProxyTargetEditor(
 }
 
 func (self *ProxyTargetEditor) Changed() {
-	self.save_asterisk.SetStyle("display", "inline")
+	self.changed_asterisk.SetStyle("display", "inline")
 }
 
 // func (self *ProxyTargetEditor) Save() {

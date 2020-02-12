@@ -3,6 +3,7 @@ package main
 type (
 	ConfigModel struct {
 		ProxyTargets map[string]*ProxyTarget
+		RuleSet      map[string]*DomainSettings
 	}
 
 	ProxyTarget struct {

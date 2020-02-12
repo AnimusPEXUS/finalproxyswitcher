@@ -18,12 +18,18 @@ type RulesAndInheritanceEditor struct {
 
 func NewRulesAndInheritanceEditor(
 	document *pexu_dom.Document,
-	domain_settings *DomainSettings,
+	// domain_settings *DomainSettings,
 	preset_rules_and_inheritance *RulesAndInheritance,
 	onchange func(),
 ) *RulesAndInheritanceEditor {
 
+	if preset_rules_and_inheritance == nil {
+		preset_rules_and_inheritance = &RulesAndInheritance{}
+	}
+
 	self := &RulesAndInheritanceEditor{}
+
+	self.RulesAndInheritance = preset_rules_and_inheritance
 
 	etc := elementtreeconstructor.NewElementTreeConstructor(document)
 
@@ -51,6 +57,12 @@ func NewRulesAndInheritanceEditor(
 	)
 
 	t := etc.CreateElement("div").
+		SetStyle("border", "1px black dotted").
+		SetStyle("border-left", "3px teal solid").
+		SetStyle("border-radius", "5px").
+		SetStyle("padding", "3px").
+		SetStyle("display", "grid").
+		SetStyle("gap", "3px").
 		AppendChildren(
 			self.rules_inheritance_editor.Element,
 			self.rules_editor.Element,

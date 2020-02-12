@@ -10,9 +10,7 @@ const (
 	RuleInheritanceGlobal
 )
 
-// fixme:
 var RuleInheritanceStrings = map[RuleInheritance]string{
-	//var RuleInheritanceStrings = map[uint]string{
 	RuleInheritanceNone:   "None",
 	RuleInheritanceParent: "Parent",
 	RuleInheritanceGlobal: "Global",
@@ -27,9 +25,7 @@ const (
 	HttpRulePass
 )
 
-// fixme:
 var HttpRuleStrings = map[HttpRule]string{
-	// var HttpRuleStrings = map[uint]string{
 	HttpRuleUndefined:      "Undefined",
 	HttpRuleBlock:          "Block",
 	HttpRuleConvertToHttps: "Convert To Https",
@@ -44,9 +40,7 @@ const (
 	RequestRuleAllow
 )
 
-// fixme:
 var RequestRuleStrings = map[RequestRule]string{
-	// var RequestRuleStrings = map[uint]string{
 	RequestRuleUndefined: "Undefined",
 	RequestRuleBlock:     "Block",
 	RequestRuleAllow:     "Allow",
@@ -60,9 +54,7 @@ const (
 	ProxyRulePassUnchanged
 )
 
-// fixme:
 var ProxyRuleString = map[ProxyRule]string{
-	// var ProxyRuleString = map[uint]string{
 	ProxyRuleUndefined:     "Undefined",
 	ProxyRuleUseTarget:     "Use Target",
 	ProxyRulePassUnchanged: "Pass Unchanged",

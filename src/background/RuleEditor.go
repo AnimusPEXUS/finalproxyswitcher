@@ -9,8 +9,7 @@ import (
 )
 
 type RulesEditor struct {
-	document  *pexu_dom.Document
-	extension *ProxySwitcherExtension
+	document *pexu_dom.Document
 
 	http_rule_select    *select00.Select00
 	request_rule_select *select00.Select00
@@ -28,6 +27,10 @@ func NewRulesEditor(
 ) *RulesEditor {
 
 	self := &RulesEditor{}
+
+	if preset_rules == nil {
+		preset_rules = &Rules{}
+	}
 
 	self.Rules = preset_rules
 
@@ -70,11 +73,45 @@ func NewRulesEditor(
 		},
 	)
 
-	t := etc.CreateElement("div").
+	t := etc.CreateElement("table").
+		SetStyle("border", "1px black dotted").
+		SetStyle("border-left", "3px lime solid").
+		SetStyle("border-radius", "5px").
+		SetStyle("padding", "3px").
 		AppendChildren(
-			self.http_rule_select.Element,
-			self.request_rule_select.Element,
-			self.proxy_rule_select.Element,
+			etc.CreateElement("tr").
+				AppendChildren(
+					etc.CreateElement("td").
+						AppendChildren(
+							etc.CreateTextNode("http rule"),
+						),
+					etc.CreateElement("td").
+						AppendChildren(
+							self.http_rule_select.Element,
+						),
+				),
+			etc.CreateElement("tr").
+				AppendChildren(
+					etc.CreateElement("td").
+						AppendChildren(
+							etc.CreateTextNode("request rule"),
+						),
+					etc.CreateElement("td").
+						AppendChildren(
+							self.request_rule_select.Element,
+						),
+				),
+			etc.CreateElement("tr").
+				AppendChildren(
+					etc.CreateElement("td").
+						AppendChildren(
+							etc.CreateTextNode("proxy rule"),
+						),
+					etc.CreateElement("td").
+						AppendChildren(
+							self.proxy_rule_select.Element,
+						),
+				),
 		)
 
 	self.Element = t.Element

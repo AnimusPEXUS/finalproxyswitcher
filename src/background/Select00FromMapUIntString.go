@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"strconv"
 
 	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
@@ -14,15 +15,23 @@ func Select00FromMapUIntString(
 	cb func(),
 ) *select00.Select00 {
 
-	correct_map := make(map[string]string)
+	keys := []int{}
 
-	for k, v := range data {
-		correct_map[strconv.Itoa(int(k))] = v
+	for k, _ := range data {
+		keys = append(keys, int(k))
+	}
+
+	sort.Ints(keys)
+
+	correct_input := make([][2]string, 0)
+
+	for _, k := range keys {
+		correct_input = append(correct_input, [2]string{strconv.Itoa(int(k)), data[uint(k)]})
 	}
 
 	ret := select00.NewSelect00(
 		document,
-		correct_map,
+		correct_input,
 		strconv.Itoa(int(preselected)),
 		cb,
 	)

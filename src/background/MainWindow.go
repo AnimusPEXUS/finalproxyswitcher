@@ -42,6 +42,11 @@ func NewMainWindow(
 
 	etc := elementtreeconstructor.NewElementTreeConstructor(document)
 
+	rule_set_widget := NewRuleSetWidget(
+		document,
+		extension,
+	)
+
 	self.Element = etc.CreateElement("html").
 		SetStyle("position", "absolute").
 		SetStyle("top", "0px").
@@ -87,7 +92,7 @@ func NewMainWindow(
 												AppendChildren(
 													etc.CreateTextNode("Save"),
 													etc.CreateElement("span").
-														SetStyle("display", "none").
+														ExternalUse(applySpanChangedAsterisk).
 														AppendChildren(
 															etc.CreateTextNode("*"),
 														).
@@ -208,7 +213,7 @@ func NewMainWindow(
 									etc.CreateElement("td").
 										SetStyle("border", "1px black solid").
 										AppendChildren(
-											etc.CreateTextNode("tab requests domain settings"),
+											rule_set_widget.Element,
 										),
 								),
 						),

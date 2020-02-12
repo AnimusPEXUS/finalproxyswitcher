@@ -29,6 +29,10 @@ func NewRuleInheritanceEditor(
 
 	self := &RulesInheritanceEditor{}
 
+	if preset_rules_inheritance == nil {
+		preset_rules_inheritance = &RulesInheritance{}
+	}
+
 	self.RulesInheritance = preset_rules_inheritance
 
 	etc := elementtreeconstructor.NewElementTreeConstructor(document)
@@ -71,10 +75,44 @@ func NewRuleInheritanceEditor(
 	)
 
 	t := etc.CreateElement("div").
+		SetStyle("border", "1px black dotted").
+		SetStyle("border-left", "3px gold solid").
+		SetStyle("border-radius", "5px").
+		SetStyle("padding", "3px").
 		AppendChildren(
-			self.http_rule_inheritance_select.Element,
-			self.request_rule_inheritance_select.Element,
-			self.proxy_rule_inheritance_select.Element,
+			etc.CreateElement("tr").
+				AppendChildren(
+					etc.CreateElement("td").
+						AppendChildren(
+							etc.CreateTextNode("http rule inheritance"),
+						),
+					etc.CreateElement("td").
+						AppendChildren(
+							self.http_rule_inheritance_select.Element,
+						),
+				),
+			etc.CreateElement("tr").
+				AppendChildren(
+					etc.CreateElement("td").
+						AppendChildren(
+							etc.CreateTextNode("request rule inheritance"),
+						),
+					etc.CreateElement("td").
+						AppendChildren(
+							self.request_rule_inheritance_select.Element,
+						),
+				),
+			etc.CreateElement("tr").
+				AppendChildren(
+					etc.CreateElement("td").
+						AppendChildren(
+							etc.CreateTextNode("proxy rule inheritance"),
+						),
+					etc.CreateElement("td").
+						AppendChildren(
+							self.proxy_rule_inheritance_select.Element,
+						),
+				),
 		)
 
 	self.Element = t.Element

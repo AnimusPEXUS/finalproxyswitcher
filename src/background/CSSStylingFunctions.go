@@ -41,5 +41,20 @@ func applyButtonStyle(ed *elementtreeconstructor.ElementMutator) {
 func applyAStyle(ed *elementtreeconstructor.ElementMutator) {
 	ed.
 		SetStyle("color", "blue").
-		SetStyle("cursor", "pointer")
+		SetStyle("cursor", "pointer").
+		SetStyle("text-decoration", "underline")
+}
+
+func applyBlackRoundedBoxInRuleEditor(ed *elementtreeconstructor.ElementMutator) {
+	ed.
+		SetStyle("border", "1px dotted black").
+		SetStyle("border-left", "3px solid orange").
+		SetStyle("border-radius", "3px").
+		SetStyle("padding", "3px")
+}
+
+func applySpanChangedAsterisk(ed *elementtreeconstructor.ElementMutator) {
+	ed.
+		SetStyle("display", "none").
+		SetStyle("color", "red")
 }

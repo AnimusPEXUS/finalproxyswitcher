@@ -189,6 +189,9 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".thepiratebay.org",
 		".xuk.life",
 		".lurkmore.to",
+		".protonmail.com",
+		".telegra.ph",
+		".t.me",
 	} {
 
 		c := i
@@ -246,6 +249,42 @@ func (self *ProxySwitcherExtension) ShowMainWindow(
 			"type": "popup",
 		},
 	)
+
+	// TODO: somehow use window.open (or something) to hide window's titlebar
+	// prom_js := g.Get("browser").Get("windows").Call(
+	// 	"create",
+	// 	map[string]interface{}{
+	// 		// "url":  "mainwindow.html",
+	// 		"type": "popup",
+	// 	},
+	// )
+
+	// prom, err := pexu_promise.NewPromiseFromJSValue(prom_js)
+	// if err != nil {
+	// 	return false
+	// }
+
+	// prom.Then(
+	// 	js.FuncOf(
+	// 		func(
+	// 			this js.Value,
+	// 			args []js.Value,
+	// 		) interface{} {
+	// 			if len(args) == 0 {
+	// 				return false
+	// 			}
+	// 			args[0].Call(
+	// 				"open",
+	// 				"mainwindow.html",
+	// 				"",
+	// 				map[string]interface{}{
+	// 					"titlebar": "0",
+	// 				},
+	// 			)
+	// 			return false
+	// 		},
+	// 	),
+	// )
 
 	return false
 
