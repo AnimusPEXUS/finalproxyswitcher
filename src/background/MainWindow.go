@@ -26,7 +26,7 @@ func (self *ProxySwitcherExtension) MainWindow(
 	ret := NewMainWindow(document, self)
 	self.main_window = ret
 	if self.changed {
-		go ret.Changed()
+		ret.Changed()
 	}
 	return ret
 }

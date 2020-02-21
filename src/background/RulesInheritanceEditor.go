@@ -44,7 +44,7 @@ func NewRuleInheritanceEditor(
 	self.http_rule_inheritance_select = Select00FromMapUIntString(
 		document,
 		RuleInheritanceStrings,
-		preset_rules_inheritance.HttpRuleInheritance,
+		self.RulesInheritance.HttpRuleInheritance,
 		func() {
 			i, _ := strconv.Atoi(self.http_rule_inheritance_select.Value)
 			self.RulesInheritance.HttpRuleInheritance = uint(i)
@@ -55,7 +55,7 @@ func NewRuleInheritanceEditor(
 	self.request_rule_inheritance_select = Select00FromMapUIntString(
 		document,
 		RuleInheritanceStrings,
-		preset_rules_inheritance.RequestRuleInheritance,
+		self.RulesInheritance.RequestRuleInheritance,
 		func() {
 			i, _ := strconv.Atoi(self.request_rule_inheritance_select.Value)
 			self.RulesInheritance.RequestRuleInheritance = uint(i)
@@ -66,7 +66,7 @@ func NewRuleInheritanceEditor(
 	self.proxy_rule_inheritance_select = Select00FromMapUIntString(
 		document,
 		RuleInheritanceStrings,
-		preset_rules_inheritance.ProxyRuleInheritance,
+		self.RulesInheritance.ProxyRuleInheritance,
 		func() {
 			i, _ := strconv.Atoi(self.proxy_rule_inheritance_select.Value)
 			self.RulesInheritance.ProxyRuleInheritance = uint(i)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"syscall/js"
 
 	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
@@ -8,88 +9,110 @@ import (
 )
 
 type DomainSettingsEditor struct {
+	document *pexu_dom.Document
+
+	DomainSettings *DomainSettings
+	Element        *pexu_dom.Element
+
 	value_select *elementtreeconstructor.ElementMutator
 
 	rules_and_inheritance_editor *RulesAndInheritanceEditor
 
-	as_a_subrequest_defaults_editor    *RulesAndInheritanceEditor
-	as_a_subrequest_per_domain_editors map[string]*DomainSettingsSubrequestEditor
+	domain_settings_subrequest_defaults_editor *RulesAndInheritanceEditor
+	domain_settings_subrequests_editors        map[string]*DomainSubrequestSettingsEditor
 
 	domain_input     *elementtreeconstructor.ElementMutator
 	changed_asterisk *elementtreeconstructor.ElementMutator
 
-	DomainSettings *DomainSettings
+	editors *elementtreeconstructor.ElementMutator
 
-	Element *pexu_dom.Element
-
-	onchange func()
+	// onchange func()
 	ondelete func(domain string)
 	onrename func(domain0, domain1 string)
 	onapply  func(domain string)
 }
 
 func NewDomainSettingsEditor(
-	domain string,
 	document *pexu_dom.Document,
 	settings *DomainSettings,
-	onchange func(),
+	// onchange func(),
 	ondelete func(domain string),
 	onrename func(domain0, domain1 string),
 	onapply func(domain string),
 ) *DomainSettingsEditor {
 
-	if settings == nil {
-		settings = &DomainSettings{}
-	}
-
 	self := &DomainSettingsEditor{
+		document:       document,
 		DomainSettings: settings,
-		// parent:         parent,
-
-		onchange: onchange,
+		// onchange:       onchange,
 		ondelete: ondelete,
 		onrename: onrename,
 		onapply:  onapply,
 	}
 
-	if self.as_a_subrequest_per_domain_editors == nil {
-		self.as_a_subrequest_per_domain_editors = map[string]*DomainSettingsSubrequestEditor{}
+	if self.DomainSettings == nil {
+		self.DomainSettings = &DomainSettings{}
+	}
+
+	if self.DomainSettings.DomainSubrequestSettings == nil {
+		self.DomainSettings.DomainSubrequestSettings = map[string]*DomainSubrequestSettings{}
+	}
+
+	if self.domain_settings_subrequests_editors == nil {
+		self.domain_settings_subrequests_editors =
+			map[string]*DomainSubrequestSettingsEditor{}
 	}
 
 	etc := elementtreeconstructor.NewElementTreeConstructor(document)
 
 	self.domain_input = etc.CreateElement("input").
 		Set("type", "text").
-		Set("value", domain)
-
-	apply_to_subdomains_cb := etc.CreateElement("input").
-		Set("type", "checkbox")
+		Set("value", self.DomainSettings.Domain).
+		Set(
+			"onchange",
+			js.FuncOf(
+				func(this js.Value, args []js.Value) interface{} {
+					self.Changed()
+					return false
+				},
+			),
+		)
 
 	{
 		rai := (*RulesAndInheritance)(nil)
-		if settings != nil {
-			rai = settings.RulesAndInheritance
+		if self.DomainSettings != nil && self.DomainSettings.RulesAndInheritance != nil {
+			rai = self.DomainSettings.RulesAndInheritance
 		}
 
 		self.rules_and_inheritance_editor = NewRulesAndInheritanceEditor(
 			document,
 			rai,
-			func() {},
+			func() {
+				self.DomainSettings.RulesAndInheritance =
+					self.rules_and_inheritance_editor.RulesAndInheritance
+				self.Changed()
+			},
 		)
 
+		// TODO
 		aasd := (*RulesAndInheritance)(nil)
-		if settings != nil {
-			aasd = settings.AsASubrequestDefaults
+		if self.DomainSettings != nil &&
+			self.DomainSettings.DomainSubrequestSettingsDefaults != nil {
+			aasd = self.DomainSettings.DomainSubrequestSettingsDefaults
 		}
 
-		self.as_a_subrequest_defaults_editor = NewRulesAndInheritanceEditor(
+		self.domain_settings_subrequest_defaults_editor = NewRulesAndInheritanceEditor(
 			document,
 			aasd,
-			func() {},
+			func() {
+				self.DomainSettings.DomainSubrequestSettingsDefaults =
+					self.domain_settings_subrequest_defaults_editor.RulesAndInheritance
+				self.Changed()
+			},
 		)
 	}
 
-	subeditors_div := etc.CreateElement("div").
+	self.editors = etc.CreateElement("div").
 		SetStyle("padding-left", "6px").
 		SetStyle("display", "grid").
 		SetStyle("gap", "1px")
@@ -100,16 +123,22 @@ func NewDomainSettingsEditor(
 			"onclick",
 			js.FuncOf(
 				func(this js.Value, args []js.Value) interface{} {
-					e := NewDomainSettingsSubrequestEditor(
-						"",
+
+					if _, ok := self.domain_settings_subrequests_editors[""]; ok {
+						return false
+					}
+
+					e := NewDomainSubrequestSettingsEditor(
 						document,
 						nil,
-						self.OnSubEditorChange,
+						// self.OnSubEditorChanged,
 						self.OnSubEditorDelete,
 						self.OnSubEditorRename,
+						self.OnSubEditorApply,
 					)
-					self.as_a_subrequest_per_domain_editors[""] = e
-					subeditors_div.AppendChildren(e.Element)
+
+					self.addEditor(e)
+
 					return false
 				},
 			),
@@ -118,39 +147,13 @@ func NewDomainSettingsEditor(
 			etc.CreateTextNode("Add"),
 		)
 
-	rename_btn := etc.CreateElement("a").
-		ExternalUse(applyAStyle).
-		Set(
-			"onclick",
-			js.FuncOf(
-				func(this js.Value, args []js.Value) interface{} {
-					// TODO: add checks
-					current := self.DomainSettings.Domain
-					new_one := self.domain_input.GetJsValue("value").String()
-					onrename(current, new_one)
-					self.DomainSettings.Domain = new_one
-					self.Unchanged()
-					return false
-				},
-			),
-		).
-		AppendChildren(
-			etc.CreateTextNode("Apply Renaming"),
-			etc.CreateElement("span").
-				AppendChildren(
-					etc.CreateTextNode("*"),
-				).
-				ExternalUse(applySpanChangedAsterisk).
-				AssignSelf(&self.changed_asterisk),
-		)
-
 	remove_btn := etc.CreateElement("a").
 		ExternalUse(applyAStyle).
 		Set(
 			"onclick",
 			js.FuncOf(
 				func(this js.Value, args []js.Value) interface{} {
-					ondelete(domain)
+					self.ondelete(self.DomainSettings.Domain)
 					return false
 				},
 			),
@@ -165,13 +168,31 @@ func NewDomainSettingsEditor(
 			"onclick",
 			js.FuncOf(
 				func(this js.Value, args []js.Value) interface{} {
-					onapply(self.DomainSettings.Domain)
+
+					old_name := self.DomainSettings.Domain
+					new_name := self.domain_input.GetJsValue("value").String()
+
+					self.onapply(old_name)
+
+					if old_name != new_name {
+						self.onrename(old_name, new_name)
+						self.DomainSettings.Domain = new_name
+					}
+
+					self.Unchanged()
+
 					return false
 				},
 			),
 		).
 		AppendChildren(
 			etc.CreateTextNode("Apply"),
+			etc.CreateElement("span").
+				AppendChildren(
+					etc.CreateTextNode("*"),
+				).
+				ExternalUse(applySpanChangedAsterisk).
+				AssignSelf(&self.changed_asterisk),
 		)
 
 	div := etc.CreateElement("div").
@@ -180,16 +201,9 @@ func NewDomainSettingsEditor(
 				ExternalUse(applyBlackRoundedBoxInRuleEditor).
 				AppendChildren(
 					self.domain_input,
-					rename_btn,
-					etc.CreateTextNode(" "),
 					remove_btn,
 					etc.CreateTextNode(" "),
 					apply_settings_btn,
-				),
-			etc.CreateElement("div").
-				ExternalUse(applyBlackRoundedBoxInRuleEditor).
-				AppendChildren(
-					apply_to_subdomains_cb,
 				),
 			etc.CreateElement("div").
 				ExternalUse(applyBlackRoundedBoxInRuleEditor).
@@ -201,7 +215,7 @@ func NewDomainSettingsEditor(
 				ExternalUse(applyBlackRoundedBoxInRuleEditor).
 				AppendChildren(
 					etc.CreateTextNode("Default Settings for Subrequests"),
-					self.as_a_subrequest_defaults_editor.Element,
+					self.domain_settings_subrequest_defaults_editor.Element,
 				),
 			etc.CreateElement("div").
 				ExternalUse(applyBlackRoundedBoxInRuleEditor).
@@ -210,7 +224,7 @@ func NewDomainSettingsEditor(
 					etc.CreateTextNode(" "),
 					add_subrequest,
 				),
-			subeditors_div,
+			self.editors,
 		).
 		SetStyle("border", "1px black solid").
 		SetStyle("border-left", "3px magenta solid").
@@ -221,69 +235,109 @@ func NewDomainSettingsEditor(
 
 	self.Element = div.Element
 
-	if settings != nil && settings.AsASubrequestPerDomain != nil {
-		for k, v := range settings.AsASubrequestPerDomain {
-			e := NewDomainSettingsSubrequestEditor(
-				k,
-				document,
-				v,
-				self.OnSubEditorChange,
-				self.OnSubEditorDelete,
-				self.OnSubEditorRename,
-			)
-			self.as_a_subrequest_per_domain_editors[""] = e
-			subeditors_div.AppendChildren(e.Element)
-		}
-	}
+	self.Reload()
 
 	return self
 }
 
-func (self *DomainSettingsEditor) OnSubEditorChange() {
+func (self *DomainSettingsEditor) addEditor(ed *DomainSubrequestSettingsEditor) {
+	self.editors.AppendChildren(ed.Element)
+	// TODO: avoid adding if domain == "" ?
+	self.domain_settings_subrequests_editors[ed.DomainSubrequestSettings.Domain] = ed
+}
+
+func (self *DomainSettingsEditor) rmEditor(ed *DomainSubrequestSettingsEditor) {
+	delete(self.domain_settings_subrequests_editors, ed.DomainSubrequestSettings.Domain)
+	elementtreeconstructor.NewElementMutatorFromElement(ed.Element).RemoveFromParent()
+}
+
+func (self *DomainSettingsEditor) Reload() {
+
+	for _, v := range self.domain_settings_subrequests_editors {
+		self.rmEditor(v)
+	}
+
+	keys := make([]string, 0)
+	for k, _ := range self.DomainSettings.DomainSubrequestSettings {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		ed := NewDomainSubrequestSettingsEditor(
+			self.document,
+			self.DomainSettings.DomainSubrequestSettings[k], // TODO: deepcopy structure
+			// self.OnSubEditorChanged,
+			self.OnSubEditorDelete,
+			self.OnSubEditorRename,
+			self.OnSubEditorApply,
+		)
+
+		self.addEditor(ed)
+	}
+
+	return
+}
+
+func (self *DomainSettingsEditor) SubEditorDelete(domain string) {
+
+	if t, ok := self.domain_settings_subrequests_editors[domain]; ok {
+		self.rmEditor(t)
+	}
+
+	if _, ok := self.DomainSettings.DomainSubrequestSettings[domain]; ok {
+		delete(self.DomainSettings.DomainSubrequestSettings, domain)
+	}
+
+	// self.onchange()
+
+}
+
+func (self *DomainSettingsEditor) SubEditorRename(old_name, new_name string) {
+
+	if _, ok := self.domain_settings_subrequests_editors[new_name]; ok {
+		// TODO: Show Message. ask confirmation
+		self.SubEditorDelete(new_name)
+	}
+
+	if t, ok := self.domain_settings_subrequests_editors[old_name]; ok {
+		delete(self.domain_settings_subrequests_editors, old_name)
+		self.domain_settings_subrequests_editors[new_name] = t
+	}
+
+	if t, ok := self.DomainSettings.DomainSubrequestSettings[old_name]; ok {
+		delete(self.DomainSettings.DomainSubrequestSettings, old_name)
+		self.DomainSettings.DomainSubrequestSettings[new_name] = t
+	}
+
+	self.Changed()
+
+}
+
+// func (self *DomainSettingsEditor) OnSubEditorChanged() {
+// 	self.Changed()
+// }
+
+func (self *DomainSettingsEditor) OnSubEditorDelete(domain string) {
+	self.SubEditorDelete(domain)
+}
+
+func (self *DomainSettingsEditor) OnSubEditorRename(old_name, new_name string) {
+	self.SubEditorRename(old_name, new_name)
+}
+
+func (self *DomainSettingsEditor) OnSubEditorApply(domain string) {
+	self.DomainSettings.DomainSubrequestSettings[domain] =
+		self.domain_settings_subrequests_editors[domain].DomainSubrequestSettings
+
 	self.Changed()
 }
 
-func (self *DomainSettingsEditor) OnSubEditorDelete(domain string) {
-
-	defer func() { self.Changed() }()
-
-	if t, ok := self.as_a_subrequest_per_domain_editors[domain]; ok {
-		delete(self.as_a_subrequest_per_domain_editors, domain)
-		elementtreeconstructor.NewElementMutatorFromElement(t.Element).RemoveFromParent()
-	}
-
-	if _, ok := self.DomainSettings.AsASubrequestPerDomain[domain]; ok {
-		delete(self.DomainSettings.AsASubrequestPerDomain, domain)
-	}
-
-}
-
-func (self *DomainSettingsEditor) OnSubEditorRename(domain0, domain1 string) {
-
-	defer func() { self.Changed() }()
-
-	if _, ok := self.as_a_subrequest_per_domain_editors[domain1]; ok {
-		// TODO: Show Message. ask confirmation
-		self.OnSubEditorDelete(domain1)
-	}
-
-	if t, ok := self.as_a_subrequest_per_domain_editors[domain0]; ok {
-		delete(self.as_a_subrequest_per_domain_editors, domain0)
-		self.as_a_subrequest_per_domain_editors[domain1] = t
-	}
-
-	if t, ok := self.DomainSettings.AsASubrequestPerDomain[domain0]; ok {
-		delete(self.DomainSettings.AsASubrequestPerDomain, domain0)
-		self.DomainSettings.AsASubrequestPerDomain[domain1] = t
-	}
-
-}
-
 func (self *DomainSettingsEditor) Changed() {
-	self.onchange()
-	self.domain_input.SetStyle("display", "inline")
+	self.changed_asterisk.SetStyle("display", "inline")
 }
 
 func (self *DomainSettingsEditor) Unchanged() {
-	self.domain_input.SetStyle("display", "none")
+	self.changed_asterisk.SetStyle("display", "none")
 }

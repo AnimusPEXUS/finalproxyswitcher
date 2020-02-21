@@ -18,3 +18,11 @@ type (
 		ConnectionIsolationKey   *string
 	}
 )
+
+func NewConfigModel() *ConfigModel {
+	self := &ConfigModel{
+		ProxyTargets: map[string]*ProxyTarget{},
+		RuleSet:      map[string]*DomainSettings{},
+	}
+	return self
+}

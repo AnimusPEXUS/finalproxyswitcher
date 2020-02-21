@@ -70,17 +70,22 @@ type (
 	DomainSettings struct {
 		Domain string // e.g. org, onion, i2p, com, net ... etc
 
-		ApplyToSubdomains bool
-
 		RulesAndInheritance *RulesAndInheritance
 
-		AsASubrequestDefaults  *RulesAndInheritance
-		AsASubrequestPerDomain map[string]*RulesAndInheritance
+		DomainSubrequestSettingsDefaults *RulesAndInheritance
+		DomainSubrequestSettings         map[string]*DomainSubrequestSettings
+	}
+
+	DomainSubrequestSettings struct {
+		Domain string // e.g. org, onion, i2p, com, net ... etc
+
+		RulesAndInheritance *RulesAndInheritance
 	}
 
 	RulesAndInheritance struct {
-		RulesInheritance *RulesInheritance
-		Rules            *Rules
+		ApplyToSubdomains bool
+		RulesInheritance  *RulesInheritance
+		Rules             *Rules
 	}
 
 	RulesInheritance struct {
@@ -93,5 +98,6 @@ type (
 		HttpRule    HttpRule
 		RequestRule RequestRule
 		ProxyRule   ProxyRule
+		ProxyTarget string
 	}
 )

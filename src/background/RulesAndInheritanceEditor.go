@@ -1,8 +1,11 @@
 package main
 
 import (
+	"syscall/js"
+
 	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
 	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	pexu_wsm_misc "github.com/AnimusPEXUS/wasmtools/misc"
 )
 
 type RulesAndInheritanceEditor struct {
@@ -18,7 +21,6 @@ type RulesAndInheritanceEditor struct {
 
 func NewRulesAndInheritanceEditor(
 	document *pexu_dom.Document,
-	// domain_settings *DomainSettings,
 	preset_rules_and_inheritance *RulesAndInheritance,
 	onchange func(),
 ) *RulesAndInheritanceEditor {
@@ -36,6 +38,24 @@ func NewRulesAndInheritanceEditor(
 	int_onchange := func() {
 		onchange()
 	}
+
+	apply_to_subdomains_cb := etc.CreateElement("input").
+		Set("type", "checkbox").
+		Set("value", self.RulesAndInheritance.ApplyToSubdomains)
+
+	apply_to_subdomains_cb.Set(
+		"onchange",
+		js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				self.RulesAndInheritance.ApplyToSubdomains =
+					pexu_wsm_misc.StrBoolToBool(
+						apply_to_subdomains_cb.GetJsValue("value").String(),
+					)
+				int_onchange()
+				return false
+			},
+		),
+	)
 
 	self.rules_inheritance_editor = NewRuleInheritanceEditor(
 		document,
@@ -64,6 +84,12 @@ func NewRulesAndInheritanceEditor(
 		SetStyle("display", "grid").
 		SetStyle("gap", "3px").
 		AppendChildren(
+			etc.CreateElement("div").
+				ExternalUse(applyBlackRoundedBoxInRuleEditor).
+				AppendChildren(
+					apply_to_subdomains_cb.Element,
+					etc.CreateTextNode("Apply To Subdomains"),
+				),
 			self.rules_inheritance_editor.Element,
 			self.rules_editor.Element,
 		)

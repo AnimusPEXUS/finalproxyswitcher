@@ -27,12 +27,19 @@ func NewProxySwitcherExtension() *ProxySwitcherExtension {
 	self := &ProxySwitcherExtension{
 		request_history: NewRequestHistory(),
 		current_tab_id:  -1,
-		config:          &ConfigModel{},
+		config:          NewConfigModel(),
 	}
+
 	self.LoadConfig()
+
 	if self.config.ProxyTargets == nil {
 		self.config.ProxyTargets = map[string]*ProxyTarget{}
 	}
+
+	if self.config.RuleSet == nil {
+		self.config.RuleSet = map[string]*DomainSettings{}
+	}
+
 	return self
 }
 
@@ -104,10 +111,12 @@ func (self *ProxySwitcherExtension) LoadConfig() error {
 func (self *ProxySwitcherExtension) SaveConfig() error {
 	g := js.Global()
 
-	b, err := json.Marshal(self.config)
+	b, err := json.MarshalIndent(self.config, "  ", "  ")
 	if err != nil {
 		return err
 	}
+
+	log.Println(string(b))
 
 	config_promise_js := g.Get("browser").Get("storage").Get("local").Call(
 		"set",
@@ -192,6 +201,8 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".protonmail.com",
 		".telegra.ph",
 		".t.me",
+		".telegram.org",
+		".linkedin.com",
 	} {
 
 		c := i
@@ -335,7 +346,10 @@ func (self *ProxySwitcherExtension) RenderMainWindow(
 	return nil
 }
 
-func (self *ProxySwitcherExtension) BrowserTabsOnActivatedHandler(this js.Value, args []js.Value) interface{} {
+func (self *ProxySwitcherExtension) BrowserTabsOnActivatedHandler(
+	this js.Value,
+	args []js.Value,
+) interface{} {
 	t := args[0].Get("tabId").Int()
 	if t > -1 {
 		self.current_tab_id = t
