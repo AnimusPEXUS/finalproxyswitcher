@@ -8,6 +8,8 @@ import (
 )
 
 type DomainSubrequestSettingsEditor struct {
+	extension *ProxySwitcherExtension
+
 	DomainSubrequestSettings *DomainSubrequestSettings
 	Element                  *pexu_dom.Element
 
@@ -26,6 +28,7 @@ type DomainSubrequestSettingsEditor struct {
 
 func NewDomainSubrequestSettingsEditor(
 	document *pexu_dom.Document,
+	extension *ProxySwitcherExtension,
 	settings *DomainSubrequestSettings,
 	// onchange func(),
 	ondelete func(domain string),
@@ -34,6 +37,8 @@ func NewDomainSubrequestSettingsEditor(
 ) *DomainSubrequestSettingsEditor {
 
 	self := &DomainSubrequestSettingsEditor{
+		extension: extension,
+
 		DomainSubrequestSettings: settings,
 		ondelete:                 ondelete,
 		onrename:                 onrename,
@@ -65,6 +70,7 @@ func NewDomainSubrequestSettingsEditor(
 
 	self.hRulesAndInheritanceEditor = NewRulesAndInheritanceEditor(
 		document,
+		self.extension,
 		self.DomainSubrequestSettings.RulesAndInheritance, // TODO: make copy? yes!
 		func() {
 			self.DomainSubrequestSettings.RulesAndInheritance =

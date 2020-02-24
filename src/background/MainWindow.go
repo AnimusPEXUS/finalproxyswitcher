@@ -16,6 +16,8 @@ type MainWindow struct {
 	save_settings_button *elementtreeconstructor.ElementMutator
 	save_asterisk        *elementtreeconstructor.ElementMutator
 
+	root_rules_editor *RulesEditor
+
 	Element   *pexu_dom.Element
 	extension *ProxySwitcherExtension
 }
@@ -45,6 +47,16 @@ func NewMainWindow(
 	rule_set_widget := NewRuleSetWidget(
 		document,
 		extension,
+	)
+
+	self.root_rules_editor = NewRulesEditor(
+		document,
+		extension,
+		self.extension.config.RootRules.Copy(),
+		func() {
+			self.extension.config.RootRules = self.root_rules_editor.Rules
+			self.Changed()
+		},
 	)
 
 	self.Element = etc.CreateElement("html").
@@ -147,68 +159,7 @@ func NewMainWindow(
 									etc.CreateElement("td").
 										SetStyle("border", "1px black solid").
 										AppendChildren(
-											etc.CreateElement("div").
-												AppendChildren(
-													etc.CreateTextNode("http requests"),
-													etc.CreateElement("form").
-														AppendChildren(
-															etc.CreateElement("div").
-																AppendChildren(
-																	etc.CreateElement("input").
-																		Set("type", "radio"),
-																	etc.CreateElement("label").
-																		AppendChildren(
-																			etc.CreateTextNode("block http"),
-																		),
-																),
-															etc.CreateElement("div").
-																AppendChildren(
-
-																	etc.CreateElement("input").
-																		Set("type", "radio"),
-																	etc.CreateElement("label").
-																		AppendChildren(
-																			etc.CreateTextNode("convert http to https"),
-																		),
-																),
-															etc.CreateElement("div").
-																AppendChildren(
-
-																	etc.CreateElement("input").
-																		Set("type", "radio"),
-																	etc.CreateElement("label").
-																		AppendChildren(
-																			etc.CreateTextNode("ignore and pass"),
-																		),
-																),
-														),
-												),
-											etc.CreateElement("div").
-												AppendChildren(
-													etc.CreateTextNode("request filtering"),
-													etc.CreateElement("form").
-														AppendChildren(
-															etc.CreateElement("input").
-																Set("type", "checkbox"),
-															etc.CreateElement("label").
-																AppendChildren(
-																	etc.CreateTextNode("enabled"),
-																),
-														),
-												),
-											etc.CreateElement("div").
-												AppendChildren(
-													etc.CreateTextNode("proxy switching"),
-													etc.CreateElement("form").
-														AppendChildren(
-															etc.CreateElement("input").
-																Set("type", "checkbox"),
-															etc.CreateElement("label").
-																AppendChildren(
-																	etc.CreateTextNode("enabled"),
-																),
-														),
-												),
+											self.root_rules_editor.Element,
 										),
 									etc.CreateElement("td").
 										SetStyle("border", "1px black solid").

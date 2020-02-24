@@ -361,3 +361,31 @@ func (self *ProxySwitcherExtension) Changed() {
 	self.changed = true
 	go self.main_window.Changed()
 }
+
+// func (self *ProxySwitcherExtension) ProxyTargetListKysOnly() []string {
+
+// 	// TODO: is this optimal? gues not
+
+// 	ret := make([]string, 0)
+
+// 	for k, _ := range self.config.ProxyTargets {
+// 		ret = append(ret, k)
+// 	}
+
+// 	sort.Strings(ret)
+
+// 	return ret
+// }
+
+func (self *ProxySwitcherExtension) ProxyTargetList() [][2]string {
+
+	ret := make([][2]string, 0)
+
+	ret = append(ret, [2]string{"", "Undefined"})
+
+	for k, _ := range self.config.ProxyTargets {
+		ret = append(ret, [2]string{k, k})
+	}
+
+	return ret
+}

@@ -2,6 +2,7 @@ package main
 
 type (
 	ConfigModel struct {
+		RootRules    *Rules
 		ProxyTargets map[string]*ProxyTarget
 		RuleSet      map[string]*DomainSettings
 	}

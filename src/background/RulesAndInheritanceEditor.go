@@ -5,8 +5,9 @@ import (
 
 	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
 	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
-	pexu_wsm_misc "github.com/AnimusPEXUS/wasmtools/misc"
 )
+
+//	pexu_wsm_misc "github.com/AnimusPEXUS/wasmtools/misc"
 
 type RulesAndInheritanceEditor struct {
 	value_select *elementtreeconstructor.ElementMutator
@@ -21,6 +22,7 @@ type RulesAndInheritanceEditor struct {
 
 func NewRulesAndInheritanceEditor(
 	document *pexu_dom.Document,
+	extension *ProxySwitcherExtension,
 	preset_rules_and_inheritance *RulesAndInheritance,
 	onchange func(),
 ) *RulesAndInheritanceEditor {
@@ -41,16 +43,20 @@ func NewRulesAndInheritanceEditor(
 
 	apply_to_subdomains_cb := etc.CreateElement("input").
 		Set("type", "checkbox").
-		Set("value", self.RulesAndInheritance.ApplyToSubdomains)
+		Set("checked", self.RulesAndInheritance.ApplyToSubdomains)
 
 	apply_to_subdomains_cb.Set(
 		"onchange",
 		js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
 				self.RulesAndInheritance.ApplyToSubdomains =
-					pexu_wsm_misc.StrBoolToBool(
-						apply_to_subdomains_cb.GetJsValue("value").String(),
-					)
+					apply_to_subdomains_cb.GetJsValue("checked").Bool()
+					// pexu_wsm_misc.StrBoolToBool(
+
+					// )
+
+				// log.Println("self.RulesAndInheritance.ApplyToSubdomains as", self.RulesAndInheritance.ApplyToSubdomains)
+
 				int_onchange()
 				return false
 			},
@@ -59,9 +65,9 @@ func NewRulesAndInheritanceEditor(
 
 	self.rules_inheritance_editor = NewRuleInheritanceEditor(
 		document,
-		preset_rules_and_inheritance.RulesInheritance,
+		extension,
+		self.RulesAndInheritance.RulesInheritance.Copy(),
 		func() {
-			// todo: maybe it's better not to do such assignment
 			self.RulesAndInheritance.RulesInheritance = self.rules_inheritance_editor.RulesInheritance
 			int_onchange()
 		},
@@ -69,7 +75,8 @@ func NewRulesAndInheritanceEditor(
 
 	self.rules_editor = NewRulesEditor(
 		document,
-		preset_rules_and_inheritance.Rules,
+		extension,
+		self.RulesAndInheritance.Rules.Copy(),
 		func() {
 			self.RulesAndInheritance.Rules = self.rules_editor.Rules
 			int_onchange()

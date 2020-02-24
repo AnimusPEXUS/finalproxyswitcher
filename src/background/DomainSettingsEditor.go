@@ -9,7 +9,8 @@ import (
 )
 
 type DomainSettingsEditor struct {
-	document *pexu_dom.Document
+	document  *pexu_dom.Document
+	extension *ProxySwitcherExtension
 
 	DomainSettings *DomainSettings
 	Element        *pexu_dom.Element
@@ -34,6 +35,7 @@ type DomainSettingsEditor struct {
 
 func NewDomainSettingsEditor(
 	document *pexu_dom.Document,
+	extension *ProxySwitcherExtension,
 	settings *DomainSettings,
 	// onchange func(),
 	ondelete func(domain string),
@@ -43,6 +45,7 @@ func NewDomainSettingsEditor(
 
 	self := &DomainSettingsEditor{
 		document:       document,
+		extension:      extension,
 		DomainSettings: settings,
 		// onchange:       onchange,
 		ondelete: ondelete,
@@ -79,14 +82,15 @@ func NewDomainSettingsEditor(
 		)
 
 	{
-		rai := (*RulesAndInheritance)(nil)
-		if self.DomainSettings != nil && self.DomainSettings.RulesAndInheritance != nil {
-			rai = self.DomainSettings.RulesAndInheritance
-		}
+		// rai := (*RulesAndInheritance)(nil)
+		// if self.DomainSettings != nil && self.DomainSettings.RulesAndInheritance != nil {
+		// 	rai = self.DomainSettings.RulesAndInheritance.Copy()
+		// }
 
 		self.rules_and_inheritance_editor = NewRulesAndInheritanceEditor(
 			document,
-			rai,
+			self.extension,
+			self.DomainSettings.RulesAndInheritance.Copy(),
 			func() {
 				self.DomainSettings.RulesAndInheritance =
 					self.rules_and_inheritance_editor.RulesAndInheritance
@@ -94,16 +98,16 @@ func NewDomainSettingsEditor(
 			},
 		)
 
-		// TODO
-		aasd := (*RulesAndInheritance)(nil)
-		if self.DomainSettings != nil &&
-			self.DomainSettings.DomainSubrequestSettingsDefaults != nil {
-			aasd = self.DomainSettings.DomainSubrequestSettingsDefaults
-		}
+		// aasd := (*RulesAndInheritance)(nil)
+		// if self.DomainSettings != nil &&
+		// 	self.DomainSettings.DomainSubrequestSettingsDefaults != nil {
+		// 	aasd = self.DomainSettings.DomainSubrequestSettingsDefaults.Copy()
+		// }
 
 		self.domain_settings_subrequest_defaults_editor = NewRulesAndInheritanceEditor(
 			document,
-			aasd,
+			self.extension,
+			self.DomainSettings.DomainSubrequestSettingsDefaults.Copy(),
 			func() {
 				self.DomainSettings.DomainSubrequestSettingsDefaults =
 					self.domain_settings_subrequest_defaults_editor.RulesAndInheritance
@@ -130,6 +134,7 @@ func NewDomainSettingsEditor(
 
 					e := NewDomainSubrequestSettingsEditor(
 						document,
+						self.extension,
 						nil,
 						// self.OnSubEditorChanged,
 						self.OnSubEditorDelete,
@@ -145,6 +150,24 @@ func NewDomainSettingsEditor(
 		).
 		AppendChildren(
 			etc.CreateTextNode("Add"),
+		)
+
+	reload_button := etc.CreateElement("a").
+		ExternalUse(applyAStyle).
+		Set(
+			"onclick",
+			js.FuncOf(
+				func(
+					this js.Value,
+					args []js.Value,
+				) interface{} {
+					self.Reload()
+					return false
+				},
+			),
+		).
+		AppendChildren(
+			etc.CreateTextNode("Reload"),
 		)
 
 	remove_btn := etc.CreateElement("a").
@@ -223,6 +246,8 @@ func NewDomainSettingsEditor(
 					etc.CreateTextNode("Subrequest Domain Setting "),
 					etc.CreateTextNode(" "),
 					add_subrequest,
+					etc.CreateTextNode(" "),
+					reload_button,
 				),
 			self.editors,
 		).
@@ -267,7 +292,8 @@ func (self *DomainSettingsEditor) Reload() {
 	for _, k := range keys {
 		ed := NewDomainSubrequestSettingsEditor(
 			self.document,
-			self.DomainSettings.DomainSubrequestSettings[k], // TODO: deepcopy structure
+			self.extension,
+			self.DomainSettings.DomainSubrequestSettings[k].Copy(),
 			// self.OnSubEditorChanged,
 			self.OnSubEditorDelete,
 			self.OnSubEditorRename,

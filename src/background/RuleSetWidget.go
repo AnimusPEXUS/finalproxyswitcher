@@ -63,6 +63,7 @@ func NewRuleSetWidget(
 
 					ed := NewDomainSettingsEditor(
 						self.document,
+						self.extension,
 						nil,
 						// self.OnSubEditorChanged,
 						self.OnSubEditorDelete,
@@ -143,7 +144,8 @@ func (self *RuleSetWidget) Reload() {
 	for _, k := range keys {
 		ed := NewDomainSettingsEditor(
 			self.document,
-			self.extension.config.RuleSet[k], // TODO: deepcopy structure
+			self.extension,
+			self.extension.config.RuleSet[k].Copy(),
 			// self.OnSubEditorChanged,
 			self.OnSubEditorDelete,
 			self.OnSubEditorRename,

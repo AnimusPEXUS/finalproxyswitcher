@@ -9,8 +9,7 @@ import (
 )
 
 type RulesInheritanceEditor struct {
-	document  *pexu_dom.Document
-	extension *ProxySwitcherExtension
+	document *pexu_dom.Document
 
 	http_rule_inheritance_select    *select00.Select00
 	request_rule_inheritance_select *select00.Select00
@@ -23,6 +22,7 @@ type RulesInheritanceEditor struct {
 
 func NewRuleInheritanceEditor(
 	document *pexu_dom.Document,
+	extension *ProxySwitcherExtension,
 	preset_rules_inheritance *RulesInheritance,
 	onchange func(),
 ) *RulesInheritanceEditor {

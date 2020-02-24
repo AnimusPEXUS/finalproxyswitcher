@@ -14,6 +14,7 @@ type RulesEditor struct {
 	http_rule_select    *select00.Select00
 	request_rule_select *select00.Select00
 	proxy_rule_select   *select00.Select00
+	proxy_target_select *select00.Select00
 
 	Rules *Rules
 
@@ -22,6 +23,7 @@ type RulesEditor struct {
 
 func NewRulesEditor(
 	document *pexu_dom.Document,
+	extension *ProxySwitcherExtension,
 	preset_rules *Rules,
 	onchange func(),
 ) *RulesEditor {
@@ -73,6 +75,16 @@ func NewRulesEditor(
 		},
 	)
 
+	self.proxy_target_select = select00.NewSelect00(
+		document,
+		extension.ProxyTargetList(),
+		preset_rules.ProxyTarget,
+		func() {
+			self.Rules.ProxyTarget = self.proxy_target_select.Value
+			int_onchange()
+		},
+	)
+
 	t := etc.CreateElement("table").
 		SetStyle("border", "1px black dotted").
 		SetStyle("border-left", "3px lime solid").
@@ -110,6 +122,17 @@ func NewRulesEditor(
 					etc.CreateElement("td").
 						AppendChildren(
 							self.proxy_rule_select.Element,
+						),
+				),
+			etc.CreateElement("tr").
+				AppendChildren(
+					etc.CreateElement("td").
+						AppendChildren(
+							etc.CreateTextNode("proxy target"),
+						),
+					etc.CreateElement("td").
+						AppendChildren(
+							self.proxy_target_select.Element,
 						),
 				),
 		)
