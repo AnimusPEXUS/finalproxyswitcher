@@ -3,13 +3,12 @@ package main
 import (
 	"strconv"
 
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 	"github.com/AnimusPEXUS/wasmtools/widgetcollection/select00"
 )
 
 type RulesInheritanceEditor struct {
-	document *pexu_dom.Document
+	etc *elementtreeconstructor.ElementTreeConstructor
 
 	http_rule_inheritance_select    *select00.Select00
 	request_rule_inheritance_select *select00.Select00
@@ -17,11 +16,11 @@ type RulesInheritanceEditor struct {
 
 	RulesInheritance *RulesInheritance
 
-	Element *pexu_dom.Element
+	Element *elementtreeconstructor.ElementMutator
 }
 
 func NewRuleInheritanceEditor(
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	extension *ProxySwitcherExtension,
 	preset_rules_inheritance *RulesInheritance,
 	onchange func(),
@@ -34,15 +33,14 @@ func NewRuleInheritanceEditor(
 	}
 
 	self.RulesInheritance = preset_rules_inheritance
-
-	etc := elementtreeconstructor.NewElementTreeConstructor(document)
+	self.etc = etc
 
 	int_onchange := func() {
 		onchange()
 	}
 
 	self.http_rule_inheritance_select = Select00FromMapUIntString(
-		document,
+		etc,
 		RuleInheritanceStrings,
 		self.RulesInheritance.HttpRuleInheritance,
 		func() {
@@ -53,7 +51,7 @@ func NewRuleInheritanceEditor(
 	)
 
 	self.request_rule_inheritance_select = Select00FromMapUIntString(
-		document,
+		etc,
 		RuleInheritanceStrings,
 		self.RulesInheritance.RequestRuleInheritance,
 		func() {
@@ -64,7 +62,7 @@ func NewRuleInheritanceEditor(
 	)
 
 	self.proxy_rule_inheritance_select = Select00FromMapUIntString(
-		document,
+		etc,
 		RuleInheritanceStrings,
 		self.RulesInheritance.ProxyRuleInheritance,
 		func() {
@@ -74,7 +72,7 @@ func NewRuleInheritanceEditor(
 		},
 	)
 
-	t := etc.CreateElement("div").
+	self.Element = etc.CreateElement("div").
 		SetStyle("border", "1px black dotted").
 		SetStyle("border-left", "3px gold solid").
 		SetStyle("border-radius", "5px").
@@ -114,8 +112,6 @@ func NewRuleInheritanceEditor(
 						),
 				),
 		)
-
-	self.Element = t.Element
 
 	return self
 }

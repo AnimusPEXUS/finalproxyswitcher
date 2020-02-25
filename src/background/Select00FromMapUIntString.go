@@ -4,12 +4,12 @@ import (
 	"sort"
 	"strconv"
 
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 	"github.com/AnimusPEXUS/wasmtools/widgetcollection/select00"
 )
 
 func Select00FromMapUIntString(
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	data map[uint]string,
 	preselected uint,
 	cb func(),
@@ -30,7 +30,7 @@ func Select00FromMapUIntString(
 	}
 
 	ret := select00.NewSelect00(
-		document,
+		etc,
 		correct_input,
 		strconv.Itoa(int(preselected)),
 		cb,

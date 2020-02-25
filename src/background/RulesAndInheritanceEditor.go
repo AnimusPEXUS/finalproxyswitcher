@@ -3,8 +3,7 @@ package main
 import (
 	"syscall/js"
 
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 )
 
 //	pexu_wsm_misc "github.com/AnimusPEXUS/wasmtools/misc"
@@ -17,11 +16,11 @@ type RulesAndInheritanceEditor struct {
 
 	RulesAndInheritance *RulesAndInheritance
 
-	Element *pexu_dom.Element
+	Element *elementtreeconstructor.ElementMutator
 }
 
 func NewRulesAndInheritanceEditor(
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	extension *ProxySwitcherExtension,
 	preset_rules_and_inheritance *RulesAndInheritance,
 	onchange func(),
@@ -34,8 +33,6 @@ func NewRulesAndInheritanceEditor(
 	self := &RulesAndInheritanceEditor{}
 
 	self.RulesAndInheritance = preset_rules_and_inheritance
-
-	etc := elementtreeconstructor.NewElementTreeConstructor(document)
 
 	int_onchange := func() {
 		onchange()
@@ -64,7 +61,7 @@ func NewRulesAndInheritanceEditor(
 	)
 
 	self.rules_inheritance_editor = NewRuleInheritanceEditor(
-		document,
+		etc,
 		extension,
 		self.RulesAndInheritance.RulesInheritance.Copy(),
 		func() {
@@ -74,7 +71,7 @@ func NewRulesAndInheritanceEditor(
 	)
 
 	self.rules_editor = NewRulesEditor(
-		document,
+		etc,
 		extension,
 		self.RulesAndInheritance.Rules.Copy(),
 		func() {
@@ -83,7 +80,7 @@ func NewRulesAndInheritanceEditor(
 		},
 	)
 
-	t := etc.CreateElement("div").
+	self.Element = etc.CreateElement("div").
 		SetStyle("border", "1px black dotted").
 		SetStyle("border-left", "3px teal solid").
 		SetStyle("border-radius", "5px").
@@ -100,8 +97,6 @@ func NewRulesAndInheritanceEditor(
 			self.rules_inheritance_editor.Element,
 			self.rules_editor.Element,
 		)
-
-	self.Element = t.Element
 
 	return self
 }

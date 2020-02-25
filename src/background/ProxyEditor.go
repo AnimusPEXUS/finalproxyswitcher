@@ -4,11 +4,12 @@ import (
 	"log"
 	"syscall/js"
 
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 )
 
 type ProxyTargetEditor struct {
+	extension *ProxySwitcherExtension
+
 	setting_name string
 
 	edit_b, cancel_b, save_b, load_b, delete_b *elementtreeconstructor.ElementMutator
@@ -36,22 +37,21 @@ type ProxyTargetEditor struct {
 	view_div *elementtreeconstructor.ElementMutator
 	edit_div *elementtreeconstructor.ElementMutator
 
-	Element   *pexu_dom.Element
-	extension *ProxySwitcherExtension
+	Element *elementtreeconstructor.ElementMutator
 }
 
 func (self *ProxySwitcherExtension) ProxyTargetEditor(
 	setting_name string,
 	editing_switch_possible bool,
 	editing_mode bool,
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	delete_cb func(),
 ) *ProxyTargetEditor {
 	ret := NewProxyTargetEditor(
 		setting_name,
 		editing_switch_possible,
 		editing_mode,
-		document,
+		etc,
 		delete_cb,
 		self,
 	)
@@ -62,7 +62,7 @@ func NewProxyTargetEditor(
 	setting_name string,
 	editing_switch_possible bool,
 	editing_mode bool,
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	delete_cb func(),
 	extension *ProxySwitcherExtension,
 ) *ProxyTargetEditor {
@@ -72,9 +72,7 @@ func NewProxyTargetEditor(
 	self.setting_name = setting_name
 	self.extension = extension
 
-	etc := elementtreeconstructor.NewElementTreeConstructor(document)
-
-	self_Element_Mutator := etc.CreateElement("div").
+	self.Element = etc.CreateElement("div").
 		ExternalUse(applyBorder).
 		SetStyle("margin", "1px").
 		SetStyle("padding", "3px").
@@ -287,8 +285,6 @@ func NewProxyTargetEditor(
 				),
 		)
 
-	self.Element = self_Element_Mutator.Element
-
 	loadTarget := func() {
 
 		name := self.setting_name
@@ -451,7 +447,7 @@ func NewProxyTargetEditor(
 				args []js.Value,
 			) interface{} {
 				delete(self.extension.config.ProxyTargets, self.setting_name)
-				go self_Element_Mutator.RemoveFromParent()
+				go self.Element.RemoveFromParent()
 				go self.extension.Changed()
 				return false
 			},

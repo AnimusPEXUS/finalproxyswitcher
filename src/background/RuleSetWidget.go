@@ -4,14 +4,13 @@ import (
 	"sort"
 	"syscall/js"
 
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 )
 
 type RuleSetWidget struct {
-	document *pexu_dom.Document
-
 	extension *ProxySwitcherExtension
+
+	etc *elementtreeconstructor.ElementTreeConstructor
 
 	domain_settings_editors map[string]*DomainSettingsEditor
 
@@ -19,20 +18,18 @@ type RuleSetWidget struct {
 	// controls *elementtreeconstructor.ElementMutator
 	editors *elementtreeconstructor.ElementMutator
 
-	Element *pexu_dom.Element
+	Element *elementtreeconstructor.ElementMutator
 }
 
 func NewRuleSetWidget(
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	extension *ProxySwitcherExtension,
 ) *RuleSetWidget {
 	self := &RuleSetWidget{
-		document:                document,
+		etc:                     etc,
 		extension:               extension,
 		domain_settings_editors: make(map[string]*DomainSettingsEditor),
 	}
-
-	etc := elementtreeconstructor.NewElementTreeConstructor(document)
 
 	root := etc.CreateElement("div")
 	controls := etc.CreateElement("div")
@@ -45,7 +42,7 @@ func NewRuleSetWidget(
 		self.editors.Element,
 	)
 
-	self.Element = root.Element
+	self.Element = root
 
 	add_button := etc.CreateElement("a").
 		ExternalUse(applyAStyle).
@@ -62,7 +59,7 @@ func NewRuleSetWidget(
 					}
 
 					ed := NewDomainSettingsEditor(
-						self.document,
+						self.etc,
 						self.extension,
 						nil,
 						// self.OnSubEditorChanged,
@@ -125,7 +122,7 @@ func (self *RuleSetWidget) addEditor(ed *DomainSettingsEditor) {
 
 func (self *RuleSetWidget) rmEditor(ed *DomainSettingsEditor) {
 	delete(self.domain_settings_editors, ed.DomainSettings.Domain)
-	elementtreeconstructor.NewElementMutatorFromElement(ed.Element).RemoveFromParent()
+	ed.Element.RemoveFromParent()
 }
 
 func (self *RuleSetWidget) Reload() {
@@ -143,7 +140,7 @@ func (self *RuleSetWidget) Reload() {
 
 	for _, k := range keys {
 		ed := NewDomainSettingsEditor(
-			self.document,
+			self.etc,
 			self.extension,
 			self.extension.config.RuleSet[k].Copy(),
 			// self.OnSubEditorChanged,

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 	pexu_promise "github.com/AnimusPEXUS/wasmtools/promise"
 )
 
@@ -322,9 +322,9 @@ func (self *ProxySwitcherExtension) RenderMainWindow(
 
 		etc := elementtreeconstructor.NewElementTreeConstructor(pexu_dom_document)
 
-		window := self.MainWindow(pexu_dom_document)
+		window := self.MainWindow(etc)
 
-		etc.ReplaceChildren([]pexu_dom.ToNodeConvertable{window.Element})
+		etc.ReplaceChildren([]pexu_dom.ToNodeConvertable{window.Element.Element})
 
 	}
 

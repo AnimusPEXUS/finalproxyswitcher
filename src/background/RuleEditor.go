@@ -3,13 +3,12 @@ package main
 import (
 	"strconv"
 
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 	"github.com/AnimusPEXUS/wasmtools/widgetcollection/select00"
 )
 
 type RulesEditor struct {
-	document *pexu_dom.Document
+	etc *elementtreeconstructor.ElementTreeConstructor
 
 	http_rule_select    *select00.Select00
 	request_rule_select *select00.Select00
@@ -18,11 +17,11 @@ type RulesEditor struct {
 
 	Rules *Rules
 
-	Element *pexu_dom.Element
+	Element *elementtreeconstructor.ElementMutator
 }
 
 func NewRulesEditor(
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	extension *ProxySwitcherExtension,
 	preset_rules *Rules,
 	onchange func(),
@@ -35,15 +34,14 @@ func NewRulesEditor(
 	}
 
 	self.Rules = preset_rules
-
-	etc := elementtreeconstructor.NewElementTreeConstructor(document)
+	self.etc = etc
 
 	int_onchange := func() {
 		onchange()
 	}
 
 	self.http_rule_select = Select00FromMapUIntString(
-		document,
+		etc,
 		HttpRuleStrings,
 		preset_rules.HttpRule,
 		func() {
@@ -54,7 +52,7 @@ func NewRulesEditor(
 	)
 
 	self.request_rule_select = Select00FromMapUIntString(
-		document,
+		etc,
 		RequestRuleStrings,
 		preset_rules.RequestRule,
 		func() {
@@ -65,7 +63,7 @@ func NewRulesEditor(
 	)
 
 	self.proxy_rule_select = Select00FromMapUIntString(
-		document,
+		etc,
 		ProxyRuleString,
 		preset_rules.ProxyRule,
 		func() {
@@ -76,7 +74,7 @@ func NewRulesEditor(
 	)
 
 	self.proxy_target_select = select00.NewSelect00(
-		document,
+		etc,
 		extension.ProxyTargetList(),
 		preset_rules.ProxyTarget,
 		func() {
@@ -85,7 +83,7 @@ func NewRulesEditor(
 		},
 	)
 
-	t := etc.CreateElement("table").
+	self.Element = etc.CreateElement("table").
 		SetStyle("border", "1px black dotted").
 		SetStyle("border-left", "3px lime solid").
 		SetStyle("border-radius", "5px").
@@ -136,8 +134,6 @@ func NewRulesEditor(
 						),
 				),
 		)
-
-	self.Element = t.Element
 
 	return self
 }

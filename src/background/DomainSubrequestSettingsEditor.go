@@ -3,15 +3,14 @@ package main
 import (
 	"syscall/js"
 
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 )
 
 type DomainSubrequestSettingsEditor struct {
 	extension *ProxySwitcherExtension
 
 	DomainSubrequestSettings *DomainSubrequestSettings
-	Element                  *pexu_dom.Element
+	Element                  *elementtreeconstructor.ElementMutator
 
 	hRulesAndInheritanceEditor *RulesAndInheritanceEditor
 
@@ -27,10 +26,9 @@ type DomainSubrequestSettingsEditor struct {
 }
 
 func NewDomainSubrequestSettingsEditor(
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	extension *ProxySwitcherExtension,
 	settings *DomainSubrequestSettings,
-	// onchange func(),
 	ondelete func(domain string),
 	onrename func(old_name, new_name string),
 	onapply func(domain string),
@@ -53,8 +51,6 @@ func NewDomainSubrequestSettingsEditor(
 	// 	self.DomainSubrequestSettings.RulesAndInheritance = &RulesAndInheritance{}
 	// }
 
-	etc := elementtreeconstructor.NewElementTreeConstructor(document)
-
 	self.domain_input = etc.CreateElement("input").
 		Set("type", "text").
 		Set("value", self.DomainSubrequestSettings.Domain).
@@ -69,7 +65,7 @@ func NewDomainSubrequestSettingsEditor(
 		)
 
 	self.hRulesAndInheritanceEditor = NewRulesAndInheritanceEditor(
-		document,
+		etc,
 		self.extension,
 		self.DomainSubrequestSettings.RulesAndInheritance, // TODO: make copy? yes!
 		func() {
@@ -127,7 +123,7 @@ func NewDomainSubrequestSettingsEditor(
 			etc.CreateTextNode("Remove"),
 		)
 
-	r := etc.CreateElement("div").
+	self.Element = etc.CreateElement("div").
 		SetStyle("border", "1px black solid").
 		SetStyle("border-left", "3px blue solid").
 		SetStyle("border-radius", "5px").
@@ -145,8 +141,6 @@ func NewDomainSubrequestSettingsEditor(
 				),
 			self.hRulesAndInheritanceEditor.Element,
 		)
-
-	self.Element = r.Element
 
 	return self
 }

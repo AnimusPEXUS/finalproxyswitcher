@@ -4,16 +4,15 @@ import (
 	"sort"
 	"syscall/js"
 
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 )
 
 type DomainSettingsEditor struct {
-	document  *pexu_dom.Document
+	etc       *elementtreeconstructor.ElementTreeConstructor
 	extension *ProxySwitcherExtension
 
 	DomainSettings *DomainSettings
-	Element        *pexu_dom.Element
+	Element        *elementtreeconstructor.ElementMutator
 
 	value_select *elementtreeconstructor.ElementMutator
 
@@ -34,7 +33,7 @@ type DomainSettingsEditor struct {
 }
 
 func NewDomainSettingsEditor(
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	extension *ProxySwitcherExtension,
 	settings *DomainSettings,
 	// onchange func(),
@@ -44,13 +43,12 @@ func NewDomainSettingsEditor(
 ) *DomainSettingsEditor {
 
 	self := &DomainSettingsEditor{
-		document:       document,
+		etc:            etc,
 		extension:      extension,
 		DomainSettings: settings,
-		// onchange:       onchange,
-		ondelete: ondelete,
-		onrename: onrename,
-		onapply:  onapply,
+		ondelete:       ondelete,
+		onrename:       onrename,
+		onapply:        onapply,
 	}
 
 	if self.DomainSettings == nil {
@@ -65,8 +63,6 @@ func NewDomainSettingsEditor(
 		self.domain_settings_subrequests_editors =
 			map[string]*DomainSubrequestSettingsEditor{}
 	}
-
-	etc := elementtreeconstructor.NewElementTreeConstructor(document)
 
 	self.domain_input = etc.CreateElement("input").
 		Set("type", "text").
@@ -88,7 +84,7 @@ func NewDomainSettingsEditor(
 		// }
 
 		self.rules_and_inheritance_editor = NewRulesAndInheritanceEditor(
-			document,
+			etc,
 			self.extension,
 			self.DomainSettings.RulesAndInheritance.Copy(),
 			func() {
@@ -105,7 +101,7 @@ func NewDomainSettingsEditor(
 		// }
 
 		self.domain_settings_subrequest_defaults_editor = NewRulesAndInheritanceEditor(
-			document,
+			etc,
 			self.extension,
 			self.DomainSettings.DomainSubrequestSettingsDefaults.Copy(),
 			func() {
@@ -133,7 +129,7 @@ func NewDomainSettingsEditor(
 					}
 
 					e := NewDomainSubrequestSettingsEditor(
-						document,
+						etc,
 						self.extension,
 						nil,
 						// self.OnSubEditorChanged,
@@ -218,7 +214,7 @@ func NewDomainSettingsEditor(
 				AssignSelf(&self.changed_asterisk),
 		)
 
-	div := etc.CreateElement("div").
+	self.Element = etc.CreateElement("div").
 		AppendChildren(
 			etc.CreateElement("div").
 				ExternalUse(applyBlackRoundedBoxInRuleEditor).
@@ -258,8 +254,6 @@ func NewDomainSettingsEditor(
 		SetStyle("display", "grid").
 		SetStyle("gap", "3px")
 
-	self.Element = div.Element
-
 	self.Reload()
 
 	return self
@@ -273,7 +267,7 @@ func (self *DomainSettingsEditor) addEditor(ed *DomainSubrequestSettingsEditor) 
 
 func (self *DomainSettingsEditor) rmEditor(ed *DomainSubrequestSettingsEditor) {
 	delete(self.domain_settings_subrequests_editors, ed.DomainSubrequestSettings.Domain)
-	elementtreeconstructor.NewElementMutatorFromElement(ed.Element).RemoveFromParent()
+	ed.Element.RemoveFromParent()
 }
 
 func (self *DomainSettingsEditor) Reload() {
@@ -291,7 +285,7 @@ func (self *DomainSettingsEditor) Reload() {
 
 	for _, k := range keys {
 		ed := NewDomainSubrequestSettingsEditor(
-			self.document,
+			self.etc,
 			self.extension,
 			self.DomainSettings.DomainSubrequestSettings[k].Copy(),
 			// self.OnSubEditorChanged,

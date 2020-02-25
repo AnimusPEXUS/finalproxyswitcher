@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 )
 
 func applyEditorStyle(ed *elementtreeconstructor.ElementMutator) {

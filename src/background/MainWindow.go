@@ -4,11 +4,12 @@ import (
 	"sort"
 	"syscall/js"
 
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/dom/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 )
 
 type MainWindow struct {
+	extension *ProxySwitcherExtension
+
 	add_new_proxy_target_button     *elementtreeconstructor.ElementMutator
 	proxy_targets_div               *elementtreeconstructor.ElementMutator
 	reload_proxy_target_list_button *elementtreeconstructor.ElementMutator
@@ -16,16 +17,19 @@ type MainWindow struct {
 	save_settings_button *elementtreeconstructor.ElementMutator
 	save_asterisk        *elementtreeconstructor.ElementMutator
 
+	export_saved_settings_button  *elementtreeconstructor.ElementMutator
+	export_active_settings_button *elementtreeconstructor.ElementMutator
+	import_active_settings_button *elementtreeconstructor.ElementMutator
+
 	root_rules_editor *RulesEditor
 
-	Element   *pexu_dom.Element
-	extension *ProxySwitcherExtension
+	Element *elementtreeconstructor.ElementMutator
 }
 
 func (self *ProxySwitcherExtension) MainWindow(
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 ) *MainWindow {
-	ret := NewMainWindow(document, self)
+	ret := NewMainWindow(etc, self)
 	self.main_window = ret
 	if self.changed {
 		ret.Changed()
@@ -34,7 +38,7 @@ func (self *ProxySwitcherExtension) MainWindow(
 }
 
 func NewMainWindow(
-	document *pexu_dom.Document,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	extension *ProxySwitcherExtension,
 ) *MainWindow {
 
@@ -42,15 +46,13 @@ func NewMainWindow(
 
 	self.extension = extension
 
-	etc := elementtreeconstructor.NewElementTreeConstructor(document)
-
 	rule_set_widget := NewRuleSetWidget(
-		document,
+		etc,
 		extension,
 	)
 
 	self.root_rules_editor = NewRulesEditor(
-		document,
+		etc,
 		extension,
 		self.extension.config.RootRules.Copy(),
 		func() {
@@ -150,6 +152,33 @@ func NewMainWindow(
 																AppendChildren(
 																	etc.CreateTextNode("reload"),
 																),
+
+															etc.CreateTextNode("●"),
+
+															etc.CreateElement("a").
+																ExternalUse(applyAStyle).
+																AssignSelf(&self.export_saved_settings_button).
+																AppendChildren(
+																	etc.CreateTextNode("export saved settings"),
+																),
+
+															etc.CreateTextNode("●"),
+
+															etc.CreateElement("a").
+																ExternalUse(applyAStyle).
+																AssignSelf(&self.export_active_settings_button).
+																AppendChildren(
+																	etc.CreateTextNode("export active settings"),
+																),
+
+															etc.CreateTextNode("●"),
+
+															etc.CreateElement("a").
+																ExternalUse(applyAStyle).
+																AssignSelf(&self.import_active_settings_button).
+																AppendChildren(
+																	etc.CreateTextNode("import active settings"),
+																),
 														),
 
 													etc.CreateElement("div").
@@ -169,7 +198,7 @@ func NewMainWindow(
 								),
 						),
 				),
-		).Element
+		)
 
 	addNewProxyTarget := func(
 		this js.Value,
@@ -181,7 +210,7 @@ func NewMainWindow(
 					"",
 					true,
 					true,
-					document,
+					etc,
 					func() {},
 				).Element,
 			)
@@ -203,7 +232,7 @@ func NewMainWindow(
 						i,
 						true,
 						true,
-						document,
+						etc,
 						func() {},
 					).Element,
 				)
