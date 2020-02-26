@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
-	"github.com/AnimusPEXUS/wasmtools/widgetcollection/select00"
+	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
 
 func Select00FromMapUIntString(
@@ -13,7 +13,7 @@ func Select00FromMapUIntString(
 	data map[uint]string,
 	preselected uint,
 	cb func(),
-) *select00.Select00 {
+) *widgetcollection.Select00 {
 
 	keys := []int{}
 
@@ -29,7 +29,7 @@ func Select00FromMapUIntString(
 		correct_input = append(correct_input, [2]string{strconv.Itoa(int(k)), data[uint(k)]})
 	}
 
-	ret := select00.NewSelect00(
+	ret := widgetcollection.NewSelect00(
 		etc,
 		correct_input,
 		strconv.Itoa(int(preselected)),

@@ -5,6 +5,7 @@ import (
 	"syscall/js"
 
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
 
 type DomainSettingsEditor struct {
@@ -117,102 +118,66 @@ func NewDomainSettingsEditor(
 		SetStyle("display", "grid").
 		SetStyle("gap", "1px")
 
-	add_subrequest := etc.CreateElement("a").
-		ExternalUse(applyAStyle).
-		Set(
-			"onclick",
-			js.FuncOf(
-				func(this js.Value, args []js.Value) interface{} {
+	add_subrequest := widgetcollection.NewActiveLabel00(
+		"Add",
+		nil,
+		etc,
+		func() {
+			if _, ok := self.domain_settings_subrequests_editors[""]; ok {
+				return
+			}
 
-					if _, ok := self.domain_settings_subrequests_editors[""]; ok {
-						return false
-					}
+			e := NewDomainSubrequestSettingsEditor(
+				etc,
+				self.extension,
+				nil,
+				// self.OnSubEditorChanged,
+				self.OnSubEditorDelete,
+				self.OnSubEditorRename,
+				self.OnSubEditorApply,
+			)
 
-					e := NewDomainSubrequestSettingsEditor(
-						etc,
-						self.extension,
-						nil,
-						// self.OnSubEditorChanged,
-						self.OnSubEditorDelete,
-						self.OnSubEditorRename,
-						self.OnSubEditorApply,
-					)
+			self.addEditor(e)
+		},
+	)
 
-					self.addEditor(e)
+	reload_button := widgetcollection.NewActiveLabel00(
+		"Reload",
+		nil,
+		etc,
+		func() {
+			self.Reload()
+		},
+	)
 
-					return false
-				},
-			),
-		).
-		AppendChildren(
-			etc.CreateTextNode("Add"),
-		)
+	remove_btn := widgetcollection.NewActiveLabel00(
+		"Remove",
+		nil,
+		etc,
+		func() {
+			self.ondelete(self.DomainSettings.Domain)
+		},
+	)
 
-	reload_button := etc.CreateElement("a").
-		ExternalUse(applyAStyle).
-		Set(
-			"onclick",
-			js.FuncOf(
-				func(
-					this js.Value,
-					args []js.Value,
-				) interface{} {
-					self.Reload()
-					return false
-				},
-			),
-		).
-		AppendChildren(
-			etc.CreateTextNode("Reload"),
-		)
+	apply_settings_btn := widgetcollection.NewActiveLabel00(
+		"Apply",
+		nil,
+		etc,
+		func() {
 
-	remove_btn := etc.CreateElement("a").
-		ExternalUse(applyAStyle).
-		Set(
-			"onclick",
-			js.FuncOf(
-				func(this js.Value, args []js.Value) interface{} {
-					self.ondelete(self.DomainSettings.Domain)
-					return false
-				},
-			),
-		).
-		AppendChildren(
-			etc.CreateTextNode("Remove"),
-		)
+			old_name := self.DomainSettings.Domain
+			new_name := self.domain_input.GetJsValue("value").String()
 
-	apply_settings_btn := etc.CreateElement("a").
-		ExternalUse(applyAStyle).
-		Set(
-			"onclick",
-			js.FuncOf(
-				func(this js.Value, args []js.Value) interface{} {
+			self.onapply(old_name)
 
-					old_name := self.DomainSettings.Domain
-					new_name := self.domain_input.GetJsValue("value").String()
+			if old_name != new_name {
+				self.onrename(old_name, new_name)
+				self.DomainSettings.Domain = new_name
+			}
 
-					self.onapply(old_name)
-
-					if old_name != new_name {
-						self.onrename(old_name, new_name)
-						self.DomainSettings.Domain = new_name
-					}
-
-					self.Unchanged()
-
-					return false
-				},
-			),
-		).
-		AppendChildren(
-			etc.CreateTextNode("Apply"),
-			etc.CreateElement("span").
-				AppendChildren(
-					etc.CreateTextNode("*"),
-				).
-				ExternalUse(applySpanChangedAsterisk).
-				AssignSelf(&self.changed_asterisk),
-		)
+			self.Unchanged()
+		},
+	)
 
 	self.Element = etc.CreateElement("div").
 		AppendChildren(
@@ -220,9 +185,15 @@ func NewDomainSettingsEditor(
 				ExternalUse(applyBlackRoundedBoxInRuleEditor).
 				AppendChildren(
 					self.domain_input,
-					remove_btn,
+					remove_btn.Element,
 					etc.CreateTextNode(" "),
-					apply_settings_btn,
+					apply_settings_btn.Element,
+					etc.CreateElement("span").
+						AppendChildren(
+							etc.CreateTextNode("*"),
+						).
+						ExternalUse(applySpanChangedAsterisk).
+						AssignSelf(&self.changed_asterisk),
 				),
 			etc.CreateElement("div").
 				ExternalUse(applyBlackRoundedBoxInRuleEditor).
@@ -241,9 +212,9 @@ func NewDomainSettingsEditor(
 				AppendChildren(
 					etc.CreateTextNode("Subrequest Domain Setting "),
 					etc.CreateTextNode(" "),
-					add_subrequest,
+					add_subrequest.Element,
 					etc.CreateTextNode(" "),
-					reload_button,
+					reload_button.Element,
 				),
 			self.editors,
 		).

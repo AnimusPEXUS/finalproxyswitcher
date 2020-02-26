@@ -4,6 +4,7 @@ import (
 	"syscall/js"
 
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
 
 type DomainSubrequestSettingsEditor struct {
@@ -75,53 +76,36 @@ func NewDomainSubrequestSettingsEditor(
 		},
 	)
 
-	apply_btn := etc.CreateElement("a").
-		ExternalUse(applyAStyle).
-		Set(
-			"onclick",
-			js.FuncOf(
-				func(this js.Value, args []js.Value) interface{} {
+	apply_btn := widgetcollection.NewActiveLabel00(
+		"Apply",
+		nil,
+		etc,
+		func() {
 
-					old_name := self.DomainSubrequestSettings.Domain
-					new_name := self.domain_input.GetJsValue("value").String()
+			old_name := self.DomainSubrequestSettings.Domain
+			new_name := self.domain_input.GetJsValue("value").String()
 
-					self.onapply(old_name)
+			self.onapply(old_name)
 
-					if old_name != new_name {
-						self.onrename(old_name, new_name)
-						self.DomainSubrequestSettings.Domain = new_name
-					}
+			if old_name != new_name {
+				self.onrename(old_name, new_name)
+				self.DomainSubrequestSettings.Domain = new_name
+			}
 
-					self.Unchanged()
+			self.Unchanged()
 
-					return false
-				},
-			),
-		).
-		AppendChildren(
-			etc.CreateTextNode("Apply"),
-			etc.CreateElement("span").
-				AppendChildren(
-					etc.CreateTextNode("*"),
-				).
-				ExternalUse(applySpanChangedAsterisk).
-				AssignSelf(&self.changed_asterisk),
-		)
+		},
+	)
 
-	remove_btn := etc.CreateElement("a").
-		ExternalUse(applyAStyle).
-		Set(
-			"onclick",
-			js.FuncOf(
-				func(this js.Value, args []js.Value) interface{} {
-					go ondelete(self.DomainSubrequestSettings.Domain)
-					return false
-				},
-			),
-		).
-		AppendChildren(
-			etc.CreateTextNode("Remove"),
-		)
+	remove_btn := widgetcollection.NewActiveLabel00(
+		"Remove",
+		nil,
+		etc,
+		func() {
+			ondelete(self.DomainSubrequestSettings.Domain)
+
+		},
+	)
 
 	self.Element = etc.CreateElement("div").
 		SetStyle("border", "1px black solid").
@@ -138,6 +122,12 @@ func NewDomainSubrequestSettingsEditor(
 					remove_btn.Element,
 					etc.CreateTextNode(" "),
 					apply_btn.Element,
+					etc.CreateElement("span").
+						AppendChildren(
+							etc.CreateTextNode("*"),
+						).
+						ExternalUse(applySpanChangedAsterisk).
+						AssignSelf(&self.changed_asterisk),
 				),
 			self.hRulesAndInheritanceEditor.Element,
 		)

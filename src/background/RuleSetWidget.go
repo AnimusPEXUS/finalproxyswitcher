@@ -2,9 +2,9 @@ package main
 
 import (
 	"sort"
-	"syscall/js"
 
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
 
 type RuleSetWidget struct {
@@ -44,69 +44,49 @@ func NewRuleSetWidget(
 
 	self.Element = root
 
-	add_button := etc.CreateElement("a").
-		ExternalUse(applyAStyle).
-		Set(
-			"onclick",
-			js.FuncOf(
-				func(
-					this js.Value,
-					args []js.Value,
-				) interface{} {
+	add_button := widgetcollection.NewActiveLabel00(
+		"Add",
+		nil,
+		etc,
+		func() {
 
-					if _, ok := self.domain_settings_editors[""]; ok {
-						return false
-					}
+			if _, ok := self.domain_settings_editors[""]; ok {
+				return
+			}
 
-					ed := NewDomainSettingsEditor(
-						self.etc,
-						self.extension,
-						nil,
-						// self.OnSubEditorChanged,
-						self.OnSubEditorDelete,
-						self.OnSubEditorRename,
-						self.OnSubEditorApply,
-					)
+			ed := NewDomainSettingsEditor(
+				self.etc,
+				self.extension,
+				nil,
+				// self.OnSubEditorChanged,
+				self.OnSubEditorDelete,
+				self.OnSubEditorRename,
+				self.OnSubEditorApply,
+			)
 
-					self.addEditor(ed)
+			self.addEditor(ed)
 
-					// adding unnamed editor should not mean need to save
-					// self.extension.Changed()
+			// adding unnamed editor should not mean need to save
+			// self.extension.Changed()
 
-					return false
-				},
-			),
-		).
-		AppendChildren(
-			etc.CreateTextNode("Add"),
-		)
+		},
+	)
 
-	reload_button := etc.CreateElement("a").
-		ExternalUse(applyAStyle).
-		Set(
-			"onclick",
-			js.FuncOf(
-				func(
-					this js.Value,
-					args []js.Value,
-				) interface{} {
-
-					self.Reload()
-
-					return false
-				},
-			),
-		).
-		AppendChildren(
-			etc.CreateTextNode("Reload"),
-		)
+	reload_button := widgetcollection.NewActiveLabel00(
+		"Reload",
+		nil,
+		etc,
+		func() {
+			self.Reload()
+		},
+	)
 
 	controls.AppendChildren(
 		etc.CreateTextNode("Domain Rules"),
 		etc.CreateTextNode(" "),
-		add_button,
+		add_button.Element,
 		etc.CreateTextNode(" "),
-		reload_button,
+		reload_button.Element,
 	)
 
 	self.Reload()

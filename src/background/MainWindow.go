@@ -2,12 +2,13 @@ package main
 
 import (
 	"sort"
-	"syscall/js"
 
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
 
 type MainWindow struct {
+	etc       *elementtreeconstructor.ElementTreeConstructor
 	extension *ProxySwitcherExtension
 
 	add_new_proxy_target_button     *elementtreeconstructor.ElementMutator
@@ -17,9 +18,9 @@ type MainWindow struct {
 	save_settings_button *elementtreeconstructor.ElementMutator
 	save_asterisk        *elementtreeconstructor.ElementMutator
 
-	export_saved_settings_button  *elementtreeconstructor.ElementMutator
-	export_active_settings_button *elementtreeconstructor.ElementMutator
-	import_active_settings_button *elementtreeconstructor.ElementMutator
+	// export_saved_settings_button  *elementtreeconstructor.ElementMutator
+	// export_active_settings_button *elementtreeconstructor.ElementMutator
+	// import_active_settings_button *elementtreeconstructor.ElementMutator
 
 	root_rules_editor *RulesEditor
 
@@ -42,7 +43,7 @@ func NewMainWindow(
 	extension *ProxySwitcherExtension,
 ) *MainWindow {
 
-	self := &MainWindow{}
+	self := &MainWindow{etc: etc}
 
 	self.extension = extension
 
@@ -100,18 +101,54 @@ func NewMainWindow(
 								AppendChildren(
 									etc.CreateElement("td").
 										AppendChildren(
-											etc.CreateElement("a").
-												ExternalUse(applyAStyle).
-												AssignSelf(&self.save_settings_button).
+											widgetcollection.NewActiveLabel00(
+												"Save",
+												nil,
+												etc,
+												func() {
+													self.Save()
+												},
+											).Element,
+
+											etc.CreateElement("span").
+												ExternalUse(applySpanChangedAsterisk).
 												AppendChildren(
-													etc.CreateTextNode("Save"),
-													etc.CreateElement("span").
-														ExternalUse(applySpanChangedAsterisk).
-														AppendChildren(
-															etc.CreateTextNode("*"),
-														).
-														AssignSelf(&self.save_asterisk),
-												),
+													etc.CreateTextNode("*"),
+												).
+												AssignSelf(&self.save_asterisk),
+
+											etc.CreateTextNode("●"),
+
+											widgetcollection.NewActiveLabel00(
+												"Export Saved Settings",
+												nil,
+												etc,
+												func() {
+
+												},
+											).Element,
+
+											etc.CreateTextNode("●"),
+
+											widgetcollection.NewActiveLabel00(
+												"Export Active Settings",
+												nil,
+												etc,
+												func() {
+
+												},
+											).Element,
+
+											etc.CreateTextNode("●"),
+
+											widgetcollection.NewActiveLabel00(
+												"Import Active Settings",
+												nil,
+												etc,
+												func() {
+
+												},
+											).Element,
 										),
 									etc.CreateElement("td").
 										SetAttribute("colspan", "2").
@@ -135,50 +172,34 @@ func NewMainWindow(
 													etc.CreateElement("div").
 														AppendChildren(
 
-															etc.CreateElement("a").
-																Set("title", "add new proxy target").
-																ExternalUse(applyAStyle).
-																AssignSelf(&self.add_new_proxy_target_button).
-																AppendChildren(
-																	etc.CreateTextNode("add"),
-																),
+															widgetcollection.NewActiveLabel00(
+																"Add",
+																&[]string{"add new proxy target"}[0],
+																etc,
+																func() {
+																	self.proxy_targets_div.
+																		AppendChildren(
+																			self.extension.ProxyTargetEditor(
+																				"",
+																				true,
+																				true,
+																				etc,
+																				func() {},
+																			).Element,
+																		)
+																},
+															).Element,
 
 															etc.CreateTextNode("●"),
 
-															etc.CreateElement("a").
-																Set("title", "reload list").
-																ExternalUse(applyAStyle).
-																AssignSelf(&self.reload_proxy_target_list_button).
-																AppendChildren(
-																	etc.CreateTextNode("reload"),
-																),
-
-															etc.CreateTextNode("●"),
-
-															etc.CreateElement("a").
-																ExternalUse(applyAStyle).
-																AssignSelf(&self.export_saved_settings_button).
-																AppendChildren(
-																	etc.CreateTextNode("export saved settings"),
-																),
-
-															etc.CreateTextNode("●"),
-
-															etc.CreateElement("a").
-																ExternalUse(applyAStyle).
-																AssignSelf(&self.export_active_settings_button).
-																AppendChildren(
-																	etc.CreateTextNode("export active settings"),
-																),
-
-															etc.CreateTextNode("●"),
-
-															etc.CreateElement("a").
-																ExternalUse(applyAStyle).
-																AssignSelf(&self.import_active_settings_button).
-																AppendChildren(
-																	etc.CreateTextNode("import active settings"),
-																),
+															widgetcollection.NewActiveLabel00(
+																"Reload",
+																&[]string{"add new proxy target"}[0],
+																etc,
+																func() {
+																	self.ReloadProxyTargetList()
+																},
+															).Element,
 														),
 
 													etc.CreateElement("div").
@@ -200,71 +221,31 @@ func NewMainWindow(
 				),
 		)
 
-	addNewProxyTarget := func(
-		this js.Value,
-		args []js.Value,
-	) interface{} {
+	self.ReloadProxyTargetList()
+
+	return self
+}
+
+func (self *MainWindow) ReloadProxyTargetList() {
+	self.proxy_targets_div.
+		RemoveChildren()
+	lst := []string{}
+	for k, _ := range self.extension.config.ProxyTargets {
+		lst = append(lst, k)
+	}
+	sort.Strings(lst)
+	for _, i := range lst {
 		self.proxy_targets_div.
 			AppendChildren(
 				self.extension.ProxyTargetEditor(
-					"",
+					i,
 					true,
 					true,
-					etc,
+					self.etc,
 					func() {},
 				).Element,
 			)
-		return true
 	}
-
-	reloadProxyTargetList := func() {
-		self.proxy_targets_div.
-			RemoveChildren()
-		lst := []string{}
-		for k, _ := range self.extension.config.ProxyTargets {
-			lst = append(lst, k)
-		}
-		sort.Strings(lst)
-		for _, i := range lst {
-			self.proxy_targets_div.
-				AppendChildren(
-					self.extension.ProxyTargetEditor(
-						i,
-						true,
-						true,
-						etc,
-						func() {},
-					).Element,
-				)
-		}
-	}
-
-	reloadProxyTargetList_j := func(
-		this js.Value,
-		args []js.Value,
-	) interface{} {
-		reloadProxyTargetList()
-		return true
-	}
-
-	self.add_new_proxy_target_button.Set("onclick", js.FuncOf(addNewProxyTarget))
-	self.reload_proxy_target_list_button.Set("onclick", js.FuncOf(reloadProxyTargetList_j))
-	self.save_settings_button.Set(
-		"onclick",
-		js.FuncOf(
-			func(
-				this js.Value,
-				args []js.Value,
-			) interface{} {
-				go self.Save()
-				return true
-			},
-		),
-	)
-
-	go reloadProxyTargetList()
-
-	return self
 }
 
 func (self *MainWindow) Changed() {

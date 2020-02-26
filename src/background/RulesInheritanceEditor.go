@@ -4,15 +4,15 @@ import (
 	"strconv"
 
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
-	"github.com/AnimusPEXUS/wasmtools/widgetcollection/select00"
+	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
 
 type RulesInheritanceEditor struct {
 	etc *elementtreeconstructor.ElementTreeConstructor
 
-	http_rule_inheritance_select    *select00.Select00
-	request_rule_inheritance_select *select00.Select00
-	proxy_rule_inheritance_select   *select00.Select00
+	http_rule_inheritance_select    *widgetcollection.Select00
+	request_rule_inheritance_select *widgetcollection.Select00
+	proxy_rule_inheritance_select   *widgetcollection.Select00
 
 	RulesInheritance *RulesInheritance
 

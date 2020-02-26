@@ -4,16 +4,16 @@ import (
 	"strconv"
 
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
-	"github.com/AnimusPEXUS/wasmtools/widgetcollection/select00"
+	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
 
 type RulesEditor struct {
 	etc *elementtreeconstructor.ElementTreeConstructor
 
-	http_rule_select    *select00.Select00
-	request_rule_select *select00.Select00
-	proxy_rule_select   *select00.Select00
-	proxy_target_select *select00.Select00
+	http_rule_select    *widgetcollection.Select00
+	request_rule_select *widgetcollection.Select00
+	proxy_rule_select   *widgetcollection.Select00
+	proxy_target_select *widgetcollection.Select00
 
 	Rules *Rules
 
@@ -73,7 +73,7 @@ func NewRulesEditor(
 		},
 	)
 
-	self.proxy_target_select = select00.NewSelect00(
+	self.proxy_target_select = widgetcollection.NewSelect00(
 		etc,
 		extension.ProxyTargetList(),
 		preset_rules.ProxyTarget,
