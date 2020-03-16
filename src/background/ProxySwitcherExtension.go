@@ -119,6 +119,10 @@ func (self *ProxySwitcherExtension) UseActiveConfigJSON(config_string string) er
 		return err
 	}
 
+	self.config.Fix()
+
+	self.Changed()
+
 	return nil
 }
 
@@ -179,6 +183,8 @@ func (self *ProxySwitcherExtension) LoadConfig() error {
 	if err != nil {
 		return err
 	}
+
+	self.config.Fix()
 
 	return nil
 }

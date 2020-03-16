@@ -72,7 +72,7 @@ type (
 	}
 
 	DomainSettings struct {
-		Domain *domainname.DomainName // e.g. org, onion, i2p, com, net ... etc
+		Domain *domainname.DomainName `json:"-"` // e.g. org, onion, i2p, com, net ... etc
 
 		RulesAndInheritance *RulesAndInheritance
 
@@ -81,7 +81,7 @@ type (
 	}
 
 	DomainSubrequestSettings struct {
-		Domain *domainname.DomainName // e.g. org, onion, i2p, com, net ... etc
+		Domain *domainname.DomainName `json:"-"` // e.g. org, onion, i2p, com, net ... etc
 
 		RulesAndInheritance *RulesAndInheritance
 	}
