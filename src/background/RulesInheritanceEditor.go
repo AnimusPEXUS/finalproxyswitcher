@@ -72,7 +72,7 @@ func NewRuleInheritanceEditor(
 		},
 	)
 
-	self.Element = etc.CreateElement("div").
+	self.Element = etc.CreateElement("table").
 		SetStyle("border", "1px black dotted").
 		SetStyle("border-left", "3px gold solid").
 		SetStyle("border-radius", "5px").

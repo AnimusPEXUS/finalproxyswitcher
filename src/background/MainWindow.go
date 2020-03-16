@@ -1,9 +1,13 @@
 package main
 
 import (
+	"log"
 	"sort"
+	"syscall/js"
+	"time"
 
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
+	pexu_promise "github.com/AnimusPEXUS/wasmtools/promise"
 	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
 
@@ -17,6 +21,8 @@ type MainWindow struct {
 
 	save_settings_button *elementtreeconstructor.ElementMutator
 	save_asterisk        *elementtreeconstructor.ElementMutator
+
+	upload_config_input *elementtreeconstructor.ElementMutator
 
 	// export_saved_settings_button  *elementtreeconstructor.ElementMutator
 	// export_active_settings_button *elementtreeconstructor.ElementMutator
@@ -61,6 +67,66 @@ func NewMainWindow(
 			self.Changed()
 		},
 	)
+
+	pager_element := etc.CreateElement("div")
+
+	pager_settings := &widgetcollection.Pager00Settings{
+		Pages: []*widgetcollection.Pager00Page{
+			&widgetcollection.Pager00Page{
+				PageId: 0,
+				Element: etc.CreateElement("div").
+					SetStyle("overflow-y", "scroll").
+					AppendChildren(
+
+						etc.CreateElement("div").
+							AppendChildren(
+
+								widgetcollection.NewActiveLabel00(
+									"Add",
+									&[]string{"add new proxy target"}[0],
+									etc,
+									func() {
+										self.proxy_targets_div.
+											AppendChildren(
+												self.extension.ProxyTargetEditor(
+													"",
+													true,
+													true,
+													etc,
+													func() {},
+												).Element,
+											)
+									},
+								).Element,
+
+								etc.CreateTextNode("●"),
+
+								widgetcollection.NewActiveLabel00(
+									"Reload",
+									&[]string{"add new proxy target"}[0],
+									etc,
+									func() {
+										self.ReloadProxyTargetList()
+									},
+								).Element,
+							),
+						etc.CreateElement("div").
+							AssignSelf(&self.proxy_targets_div),
+					),
+			},
+			&widgetcollection.Pager00Page{
+				PageId:  1,
+				Element: self.root_rules_editor.Element,
+			},
+			&widgetcollection.Pager00Page{
+				PageId:  2,
+				Element: rule_set_widget.Element,
+			},
+		},
+		DisplayElement: pager_element,
+	}
+
+	pager := widgetcollection.NewPager00(etc, pager_settings)
 
 	self.Element = etc.CreateElement("html").
 		SetStyle("position", "absolute").
@@ -120,10 +186,152 @@ func NewMainWindow(
 											etc.CreateTextNode("●"),
 
 											widgetcollection.NewActiveLabel00(
-												"Export Saved Settings",
+												"Export Saved Config..",
 												nil,
 												etc,
 												func() {
+													// this goroutine is requred, else this will deadlock
+													go func() {
+														res, err := extension.GenerateSavedConfigJSON(true)
+														if err != nil {
+															log.Println("error", err)
+															return
+														}
+
+														// TODO: move to separate package
+														blob := js.Global().Get("Blob").New([]interface{}{res})
+														objurl := js.Global().Get("URL").Call("createObjectURL", blob)
+														// TODO: use downloads.onChanged to use revokeObjectURL
+														// defer func() {
+														// 	js.Global().Get("URL").Call("revokeObjectURL", objurl)
+														// }()
+														js.Global().
+															Get("browser").
+															Get("downloads").
+															Call(
+																"download",
+																map[string]interface{}{
+																	"url":      objurl,
+																	"saveAs":   true,
+																	"filename": "settings.json",
+																},
+															)
+													}()
+												},
+											).Element,
+
+											etc.CreateTextNode("●"),
+
+											widgetcollection.NewActiveLabel00(
+												"Export Active Config..",
+												nil,
+												etc,
+												func() {
+													res, err := extension.GenerateActiveConfigJSON(true)
+													if err != nil {
+														log.Println("error", err)
+														return
+													}
+
+													// TODO: move to separate package
+													blob := js.Global().Get("Blob").New([]interface{}{res})
+													objurl := js.Global().Get("URL").Call("createObjectURL", blob)
+													// TODO: use downloads.onChanged to use revokeObjectURL
+													// defer func() {
+													// 	js.Global().Get("URL").Call("revokeObjectURL", objurl)
+													// }()
+													js.Global().
+														Get("browser").
+														Get("downloads").
+														Call(
+															"download",
+															map[string]interface{}{
+																"url":      objurl,
+																"saveAs":   true,
+																"filename": "settings.json",
+															},
+														)
+												},
+											).Element,
+
+											etc.CreateTextNode("●"),
+
+											widgetcollection.NewActiveLabel00(
+												"Import Active Config..",
+												&[]string{"press Me, press Me hard (I love this)"}[0],
+												etc,
+												func() {
+													i := etc.CreateElement("input").
+														SetAttribute("type", "file")
+													i.Set(
+														"onchange",
+														js.FuncOf(
+															func(
+																this js.Value,
+																args []js.Value,
+															) interface{} {
+																go func() {
+																	log.Println("file changed")
+
+																	files := i.GetJsValue("files")
+
+																	if files.Length() != 0 {
+																		file := files.Index(0)
+
+																		file_text_promise := file.Call("text")
+
+																		file_text_promise_go, err := pexu_promise.NewPromiseFromJSValue(file_text_promise)
+																		if err != nil {
+																			return
+																		}
+
+																		file_text := ""
+
+																		psucc := make(chan bool)
+																		perr := make(chan bool)
+
+																		file_text_promise_go.Then(
+																			js.FuncOf(func(
+																				this js.Value,
+																				args []js.Value,
+																			) interface{} {
+																				file_text = args[0].String()
+																				psucc <- true
+																				return false
+																			},
+																			),
+																			js.FuncOf(func(
+																				this js.Value,
+																				args []js.Value,
+																			) interface{} {
+																				perr <- true
+																				return false
+																			},
+																			),
+																		)
+
+																		select {
+																		case <-psucc:
+																			log.Println("file text received")
+																		case <-perr:
+																			log.Println("file text receive error")
+																			return
+																		case <-time.After(time.Duration(time.Minute)):
+																			log.Println("file text receive timeout")
+																			return
+																		}
+
+																		// TODO: error handeling
+																		self.extension.UseActiveConfigJSON(file_text)
+
+																	}
+																	return
+																}()
+																return false
+															},
+														),
+													)
+													i.Call("click", nil)
 
 												},
 											).Element,
@@ -131,22 +339,33 @@ func NewMainWindow(
 											etc.CreateTextNode("●"),
 
 											widgetcollection.NewActiveLabel00(
-												"Export Active Settings",
+												"Page 1",
 												nil,
 												etc,
 												func() {
-
+													pager.SwitchPage(0)
 												},
 											).Element,
 
 											etc.CreateTextNode("●"),
 
 											widgetcollection.NewActiveLabel00(
-												"Import Active Settings",
+												"Page 2",
 												nil,
 												etc,
 												func() {
+													pager.SwitchPage(1)
+												},
+											).Element,
 
+											etc.CreateTextNode("●"),
+
+											widgetcollection.NewActiveLabel00(
+												"Page 3",
+												nil,
+												etc,
+												func() {
+													pager.SwitchPage(2)
 												},
 											).Element,
 										),
@@ -160,62 +379,12 @@ func NewMainWindow(
 								AppendChildren(
 
 									etc.CreateElement("td").
+										Set("col-span", "3").
 										SetStyle("border", "1px black solid").
 										SetStyle("position", "relative").
 										SetStyle("vertical-align", "top").
 										// SetStyle("height", "100%").
-										AppendChildren(
-											etc.CreateElement("div").
-												SetStyle("overflow-y", "scroll").
-												AppendChildren(
-
-													etc.CreateElement("div").
-														AppendChildren(
-
-															widgetcollection.NewActiveLabel00(
-																"Add",
-																&[]string{"add new proxy target"}[0],
-																etc,
-																func() {
-																	self.proxy_targets_div.
-																		AppendChildren(
-																			self.extension.ProxyTargetEditor(
-																				"",
-																				true,
-																				true,
-																				etc,
-																				func() {},
-																			).Element,
-																		)
-																},
-															).Element,
-
-															etc.CreateTextNode("●"),
-
-															widgetcollection.NewActiveLabel00(
-																"Reload",
-																&[]string{"add new proxy target"}[0],
-																etc,
-																func() {
-																	self.ReloadProxyTargetList()
-																},
-															).Element,
-														),
-
-													etc.CreateElement("div").
-														AssignSelf(&self.proxy_targets_div),
-												),
-										),
-									etc.CreateElement("td").
-										SetStyle("border", "1px black solid").
-										AppendChildren(
-											self.root_rules_editor.Element,
-										),
-									etc.CreateElement("td").
-										SetStyle("border", "1px black solid").
-										AppendChildren(
-											rule_set_widget.Element,
-										),
+										AppendChildren(pager.Element),
 								),
 						),
 				),
@@ -228,7 +397,7 @@ func NewMainWindow(
 
 func (self *MainWindow) ReloadProxyTargetList() {
 	self.proxy_targets_div.
-		RemoveChildren()
+		RemoveAllChildren()
 	lst := []string{}
 	for k, _ := range self.extension.config.ProxyTargets {
 		lst = append(lst, k)

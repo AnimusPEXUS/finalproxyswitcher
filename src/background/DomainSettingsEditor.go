@@ -4,6 +4,7 @@ import (
 	"sort"
 	"syscall/js"
 
+	"github.com/AnimusPEXUS/utils/domainname"
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
@@ -60,6 +61,10 @@ func NewDomainSettingsEditor(
 		self.DomainSettings.DomainSubrequestSettings = map[string]*DomainSubrequestSettings{}
 	}
 
+	if self.DomainSettings.Domain == nil {
+		self.DomainSettings.Domain = domainname.NewDomainNameFromString("")
+	}
+
 	if self.domain_settings_subrequests_editors == nil {
 		self.domain_settings_subrequests_editors =
 			map[string]*DomainSubrequestSettingsEditor{}
@@ -67,7 +72,7 @@ func NewDomainSettingsEditor(
 
 	self.domain_input = etc.CreateElement("input").
 		Set("type", "text").
-		Set("value", self.DomainSettings.Domain).
+		Set("value", self.DomainSettings.Domain.String()).
 		Set(
 			"onchange",
 			js.FuncOf(
@@ -155,7 +160,7 @@ func NewDomainSettingsEditor(
 		nil,
 		etc,
 		func() {
-			self.ondelete(self.DomainSettings.Domain)
+			self.ondelete(self.DomainSettings.Domain.String())
 		},
 	)
 
@@ -165,14 +170,14 @@ func NewDomainSettingsEditor(
 		etc,
 		func() {
 
-			old_name := self.DomainSettings.Domain
+			old_name := self.DomainSettings.Domain.String()
 			new_name := self.domain_input.GetJsValue("value").String()
 
 			self.onapply(old_name)
 
 			if old_name != new_name {
 				self.onrename(old_name, new_name)
-				self.DomainSettings.Domain = new_name
+				self.DomainSettings.Domain.SetFromString(new_name)
 			}
 
 			self.Unchanged()
@@ -233,11 +238,11 @@ func NewDomainSettingsEditor(
 func (self *DomainSettingsEditor) addEditor(ed *DomainSubrequestSettingsEditor) {
 	self.editors.AppendChildren(ed.Element)
 	// TODO: avoid adding if domain == "" ?
-	self.domain_settings_subrequests_editors[ed.DomainSubrequestSettings.Domain] = ed
+	self.domain_settings_subrequests_editors[ed.DomainSubrequestSettings.Domain.String()] = ed
 }
 
 func (self *DomainSettingsEditor) rmEditor(ed *DomainSubrequestSettingsEditor) {
-	delete(self.domain_settings_subrequests_editors, ed.DomainSubrequestSettings.Domain)
+	delete(self.domain_settings_subrequests_editors, ed.DomainSubrequestSettings.Domain.String())
 	ed.Element.RemoveFromParent()
 }
 

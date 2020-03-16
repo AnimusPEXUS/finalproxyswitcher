@@ -3,6 +3,7 @@ package main
 import (
 	"syscall/js"
 
+	"github.com/AnimusPEXUS/utils/domainname"
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
@@ -48,13 +49,17 @@ func NewDomainSubrequestSettingsEditor(
 		self.DomainSubrequestSettings = &DomainSubrequestSettings{}
 	}
 
+	if self.DomainSubrequestSettings.Domain == nil {
+		self.DomainSubrequestSettings.Domain = domainname.NewDomainNameFromString("")
+	}
+
 	// if self.DomainSubrequestSettings.RulesAndInheritance == nil {
 	// 	self.DomainSubrequestSettings.RulesAndInheritance = &RulesAndInheritance{}
 	// }
 
 	self.domain_input = etc.CreateElement("input").
 		Set("type", "text").
-		Set("value", self.DomainSubrequestSettings.Domain).
+		Set("value", self.DomainSubrequestSettings.Domain.String()).
 		Set(
 			"onchange",
 			js.FuncOf(
@@ -82,14 +87,14 @@ func NewDomainSubrequestSettingsEditor(
 		etc,
 		func() {
 
-			old_name := self.DomainSubrequestSettings.Domain
+			old_name := self.DomainSubrequestSettings.Domain.String()
 			new_name := self.domain_input.GetJsValue("value").String()
 
 			self.onapply(old_name)
 
 			if old_name != new_name {
 				self.onrename(old_name, new_name)
-				self.DomainSubrequestSettings.Domain = new_name
+				self.DomainSubrequestSettings.Domain.SetFromString(new_name)
 			}
 
 			self.Unchanged()
@@ -102,7 +107,7 @@ func NewDomainSubrequestSettingsEditor(
 		nil,
 		etc,
 		func() {
-			ondelete(self.DomainSubrequestSettings.Domain)
+			ondelete(self.DomainSubrequestSettings.Domain.String())
 
 		},
 	)

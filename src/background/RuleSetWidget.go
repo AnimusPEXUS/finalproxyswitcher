@@ -97,11 +97,11 @@ func NewRuleSetWidget(
 func (self *RuleSetWidget) addEditor(ed *DomainSettingsEditor) {
 	self.editors.AppendChildren(ed.Element)
 	// TODO: avoid adding if domain == "" ?
-	self.domain_settings_editors[ed.DomainSettings.Domain] = ed
+	self.domain_settings_editors[ed.DomainSettings.Domain.String()] = ed
 }
 
 func (self *RuleSetWidget) rmEditor(ed *DomainSettingsEditor) {
-	delete(self.domain_settings_editors, ed.DomainSettings.Domain)
+	delete(self.domain_settings_editors, ed.DomainSettings.Domain.String())
 	ed.Element.RemoveFromParent()
 }
 

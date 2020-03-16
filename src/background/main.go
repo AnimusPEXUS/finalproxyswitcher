@@ -25,61 +25,69 @@ var DIRECT_PROXY = map[string]interface{}{
 var pse *ProxySwitcherExtension
 
 func main() {
-	for {
-		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Print("extension main iteration have crushed:")
-					log.Print("      message: ", r)
-					log.Print("        stack: \n", string(debug.Stack()))
-				}
-			}()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Print("extension main iteration have crushed:")
+			log.Print("      message: ", r)
+			log.Print("        stack: \n", string(debug.Stack()))
+		}
+	}()
 
-			log.Println("ProxySwitcherExtension init")
+	log.Println("ProxySwitcherExtension init")
 
-			pse = NewProxySwitcherExtension()
+	pse = NewProxySwitcherExtension()
 
-			g := js.Global()
+	g := js.Global()
 
-			g.Get("browser").Get("proxy").Get("onRequest").Call(
-				"addListener",
-				js.FuncOf(pse.BrowserProxyOnRequestHandler),
-				map[string]interface{}{
-					"urls": []interface{}{"<all_urls>"},
-				},
-			)
+	b := g.Get("browser")
 
-			g.Get("browser").Get("webRequest").Get("onBeforeRequest").Call(
-				"addListener",
-				js.FuncOf(pse.BrowserWebRequestOnBeforeRequestHandler),
-				map[string]interface{}{
-					"urls": []interface{}{"<all_urls>"},
-				},
-				[]interface{}{"blocking"},
-			)
+	b.Get("webRequest").Get("onBeforeRequest").Call(
+		"addListener",
+		js.FuncOf(pse.BrowserWebRequestOnBeforeRequestHandler),
+		map[string]interface{}{
+			"urls": []interface{}{"<all_urls>"},
+		},
+		[]interface{}{"blocking"},
+	)
 
-			g.Get("browser").Get("tabs").Get("onActivated").Call(
-				"addListener",
-				js.FuncOf(pse.BrowserTabsOnActivatedHandler),
-			)
+	b.Get("proxy").Get("onRequest").Call(
+		"addListener",
+		js.FuncOf(pse.BrowserProxyOnRequestHandler),
+		map[string]interface{}{
+			"urls": []interface{}{"<all_urls>"},
+		},
+	)
 
-			g.Get("browser").Get("browserAction").Get("onClicked").Call(
-				"addListener",
-				js.FuncOf(pse.ShowMainWindow),
-			)
+	b.Get("tabs").Get("onActivated").Call(
+		"addListener",
+		js.FuncOf(pse.BrowserTabsOnActivatedHandler),
+	)
 
-			g.Set(
-				"pse",
-				map[string]interface{}{
-					"renderMainWindow": js.FuncOf(pse.RenderMainWindow),
-				},
-			)
+	b.Get("browserAction").Get("onClicked").Call(
+		"addListener",
+		js.FuncOf(pse.ShowMainWindow),
+	)
 
-			// without this, code will become unavailable
-			c := make(chan bool)
-			<-c
+	g.Set(
+		"pse",
+		map[string]interface{}{
+			"renderMainWindow": js.FuncOf(pse.RenderMainWindow),
+		},
+	)
 
-		}()
+	// without this, code will become unavailable
 
-	}
+	// tik := true
+	// for {
+	// 	time.Sleep(time.Second)
+	// 	if tik {
+	// 		log.Print("tik")
+	// 	} else {
+	// 		log.Print("tak")
+	// 	}
+	// 	tik = !tik
+	// }
+	c := make(chan bool)
+	<-c
+
 }

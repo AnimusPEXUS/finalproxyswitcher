@@ -10,10 +10,20 @@ import (
 	"syscall/js"
 	"time"
 
+	"github.com/AnimusPEXUS/utils/domainname"
 	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
 	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
 	pexu_promise "github.com/AnimusPEXUS/wasmtools/promise"
 )
+
+// TODO: currently, rule sets are based only on domain names. it is possible,
+//       site destinguishing by ports/schemas/etc are also required
+
+type SettingsStruct struct {
+	domain           string
+	domainDomainName *domainname.DomainName
+	rules            *DomainSettings
+}
 
 type ProxySwitcherExtension struct {
 	request_history *RequestHistory
@@ -43,38 +53,36 @@ func NewProxySwitcherExtension() *ProxySwitcherExtension {
 	return self
 }
 
-func (self *ProxySwitcherExtension) LoadConfig() error {
+func (self *ProxySwitcherExtension) GetStorageLocalValue(name string) (string, error) {
+	// TODO: move this to wasmtools
+
 	g := js.Global()
 
 	config_promise_js := g.Get("browser").Get("storage").Get("local").Call(
 		"get",
-		"config",
+		name,
 	)
-
-	psucc := make(chan bool)
-	perr := make(chan bool)
 
 	config_promise, err := pexu_promise.NewPromiseFromJSValue(config_promise_js)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	var config_bytes string
+	var res_string string
+
+	psucc := make(chan bool)
+	perr := make(chan bool)
 
 	config_promise.Then(
 		js.FuncOf(func(
 			this js.Value,
 			args []js.Value,
 		) interface{} {
-			ts := args[0].Get("config")
-			if ts == js.Undefined() {
-				log.Println("Then succ - got undefined")
+			if len(args) == 0 {
 				perr <- true
 				return false
 			}
-			s := ts.String()
-			log.Println("Then succ", s)
-			config_bytes = s
+			res_string = args[0].Get(name).String()
 			psucc <- true
 			return false
 		},
@@ -91,16 +99,83 @@ func (self *ProxySwitcherExtension) LoadConfig() error {
 
 	select {
 	case <-psucc:
-
+		log.Println("storage data loaded ok")
+		return res_string, nil
 	case <-perr:
-		log.Println("error loading config from browser")
-		return errors.New("error loading config from browser")
+		log.Println("error loading storage data from browser")
+		return "", errors.New("error loading storage data from browser")
 	case <-time.After(time.Duration(time.Minute)):
-		log.Println("timeout loading config from browser")
-		return errors.New("timeout loading config from browser")
+		log.Println("timeout loading storage data from browser")
+		return "", errors.New("timeout loading storage data from browser")
 	}
 
-	err = json.Unmarshal([]byte(config_bytes), self.config)
+	return "", errors.New("unknown error")
+}
+
+func (self *ProxySwitcherExtension) UseActiveConfigJSON(config_string string) error {
+
+	err := json.Unmarshal([]byte(config_string), &self.config)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (self *ProxySwitcherExtension) GenerateActiveConfigJSON(use_indent bool) (string, error) {
+	return self.GenerateJSON(self.config, use_indent)
+}
+
+func (self *ProxySwitcherExtension) GenerateSavedConfigJSON(use_indent bool) (string, error) {
+
+	config_string, err := self.GetStorageLocalValue("config")
+	if err != nil {
+		return "", err
+	}
+
+	var t ConfigModel
+
+	err = json.Unmarshal([]byte(config_string), &t)
+	if err != nil {
+		return "", err
+	}
+
+	ret, err := self.GenerateJSON(t, use_indent)
+	if err != nil {
+		return "", err
+	}
+
+	return ret, nil
+}
+
+func (self *ProxySwitcherExtension) GenerateJSON(data interface{}, use_indent bool) (string, error) {
+
+	var b []byte
+	var err error
+
+	if use_indent {
+		b, err = json.MarshalIndent(self.config, "  ", "  ")
+		if err != nil {
+			return "", err
+		}
+	} else {
+		b, err = json.Marshal(self.config)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return string(b), nil
+}
+
+func (self *ProxySwitcherExtension) LoadConfig() error {
+
+	config_string, err := self.GetStorageLocalValue("config")
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal([]byte(config_string), self.config)
 	if err != nil {
 		return err
 	}
@@ -111,16 +186,16 @@ func (self *ProxySwitcherExtension) LoadConfig() error {
 func (self *ProxySwitcherExtension) SaveConfig() error {
 	g := js.Global()
 
-	b, err := json.MarshalIndent(self.config, "  ", "  ")
+	active_settings_json, err := self.GenerateActiveConfigJSON(true)
 	if err != nil {
 		return err
 	}
 
-	log.Println(string(b))
+	log.Println(active_settings_json)
 
 	config_promise_js := g.Get("browser").Get("storage").Get("local").Call(
 		"set",
-		map[string]interface{}{"config": string(b)},
+		map[string]interface{}{"config": active_settings_json},
 	)
 
 	psucc := make(chan bool)
@@ -189,7 +264,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".slack-edge.com",
 		"design.firefox.com",
 		".xvideos.com",
-		"hentai4manga.com",
+		".hentai4manga.com",
 		".golang.org",
 		".origin.com",
 		".ea.com",
@@ -203,6 +278,13 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".t.me",
 		".telegram.org",
 		".linkedin.com",
+		".slack-redir.net",
+		".github.com",
+		".githubassets.com",
+		".githubusercontent.com",
+		".google.com",
+		".googleapis.com",
+		".dub.pm",
 	} {
 
 		c := i
@@ -233,7 +315,45 @@ func (self *ProxySwitcherExtension) BrowserWebRequestOnBeforeRequestHandler(
 		return ret
 	}
 
-	self.request_history.AddFromMozillaObject(args[0], true)
+	record, _ := self.request_history.AddFromMozillaObject(args[0])
+
+	log.Println(record.String())
+
+	// if strings.HasPrefix(record.RequestId, "fakeRequest-") {
+	// 	return ret
+	// }
+
+	u, err := url.Parse(record.URL)
+	if err != nil {
+		// TODO: block request
+	}
+
+	request_domain := ""
+	subrequest_domain := ""
+
+	if record.DocumentURL == nil {
+		request_domain = u.Hostname()
+	} else {
+		// record_main := self.request_history.TabIdGetMainRequestEntry(record.TabId)
+		// if record_main == nil {
+		// 	log.Println("record_main is nil")
+		// 	return ret
+		// }
+		u2, err := url.Parse(*record.DocumentURL)
+		if err != nil {
+			// TODO: block request
+		}
+		request_domain = u2.Hostname()
+		subrequest_domain = u.Hostname()
+	}
+
+	// if record.DocumentURL == nil {
+	// 	log.Println("url", record.URL, "no doc_url")
+	// } else {
+	// 	log.Println("url", record.URL, "doc_url", *record.DocumentURL)
+	// }
+
+	self.CalculateCurrentRules(request_domain, subrequest_domain)
 
 	return ret
 }
@@ -388,4 +508,109 @@ func (self *ProxySwitcherExtension) ProxyTargetList() [][2]string {
 	}
 
 	return ret
+}
+
+func (self *ProxySwitcherExtension) CalculateCurrentRules(
+	request_host string,
+	subrequest_host string,
+) *Rules {
+
+	// TODO: treat IDN
+
+	request_host_s := domainname.NewDomainNameFromString(request_host)
+	subrequest_host_s := domainname.NewDomainNameFromString(subrequest_host)
+
+	log.Println("CalculateCurrentRules")
+	log.Println("  main request", request_host_s.String(), "sub request", subrequest_host_s.String())
+
+	matching_settings := make([]*SettingsStruct, 0)
+
+	for _, v := range self.config.RuleSet {
+		if request_host_s.IsEqualTo(v.Domain) ||
+			(v.RulesAndInheritance.ApplyToSubdomains &&
+				request_host_s.IsSubdomainTo(v.Domain)) {
+			matching_settings = append(
+				matching_settings,
+				&SettingsStruct{
+					domain:           v.Domain.String(),
+					domainDomainName: v.Domain,
+					rules:            v,
+				},
+			)
+		}
+	}
+
+	if len(matching_settings) != 0 {
+		for i := 0; i != len(matching_settings)-1; i++ {
+			for j := i + 1; j != len(matching_settings); j++ {
+				if matching_settings[i].domainDomainName.CompareTo(matching_settings[j].domainDomainName) > 0 {
+					z := matching_settings[i]
+					matching_settings[i] = matching_settings[j]
+					matching_settings[j] = z
+				}
+			}
+		}
+	}
+
+	log.Printf("matching settings %d:", len(matching_settings))
+	for _, i := range matching_settings {
+		log.Println("   ", i.domain)
+	}
+
+	ret := &Rules{}
+
+	if len(matching_settings) != 0 {
+		self.CalculateCurrentRulesRulePart(
+			request_host,
+			subrequest_host,
+			ret,
+			0,
+			matching_settings, matching_settings[len(matching_settings)-1].domain,
+		)
+
+		self.CalculateCurrentRulesRulePart(
+			request_host,
+			subrequest_host,
+			ret,
+			1,
+			matching_settings, matching_settings[len(matching_settings)-1].domain,
+		)
+
+		self.CalculateCurrentRulesRulePart(
+			request_host,
+			subrequest_host,
+			ret,
+			2,
+			matching_settings, matching_settings[len(matching_settings)-1].domain,
+		)
+	}
+	return ret
+}
+
+func (self *ProxySwitcherExtension) CalculateCurrentRulesRulePart(
+	request_host string,
+	subrequest_host string,
+	rules_structure *Rules,
+	mode int, // TODO: use named constants here
+	matched_domain_setting_structs_slice []*SettingsStruct,
+	start_with_domain string,
+) error {
+
+	// var (
+	// 	str_in_q   *SettingsStruct
+	// 	str_in_q_i int
+	// )
+
+	// for i := len(matched_domain_setting_structs_slice) - 1; i != -1; i = i - 1 {
+	// 	if matched_domain_setting_structs_slice[i].domain == start_with_domain {
+	// 		str_in_q_i = i
+	// 		str_in_q = matched_domain_setting_structs_slice[i]
+	// 	}
+	// }
+
+	// if mode == 0 {
+
+	// }
+
+	return nil
 }

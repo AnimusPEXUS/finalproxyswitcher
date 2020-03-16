@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/AnimusPEXUS/utils/domainname"
+)
+
 // TODO: add cookies
 
 type RuleInheritance = uint
@@ -68,7 +72,7 @@ type (
 	}
 
 	DomainSettings struct {
-		Domain string // e.g. org, onion, i2p, com, net ... etc
+		Domain *domainname.DomainName // e.g. org, onion, i2p, com, net ... etc
 
 		RulesAndInheritance *RulesAndInheritance
 
@@ -77,7 +81,7 @@ type (
 	}
 
 	DomainSubrequestSettings struct {
-		Domain string // e.g. org, onion, i2p, com, net ... etc
+		Domain *domainname.DomainName // e.g. org, onion, i2p, com, net ... etc
 
 		RulesAndInheritance *RulesAndInheritance
 	}

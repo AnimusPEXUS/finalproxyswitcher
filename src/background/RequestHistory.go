@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net"
 	"net/url"
 	"strings"
@@ -20,6 +19,11 @@ type RequestHistoryItem struct {
 	DocumentURL *string
 	Host        string
 	URL         string
+}
+
+func (self *RequestHistoryItem) String() string {
+	b, _ := json.MarshalIndent(self, "  ", "  ")
+	return string(b)
 }
 
 type RequestHistory struct {
@@ -41,10 +45,7 @@ func (self *RequestHistory) ClearTabHistory(tabId int) {
 	}
 }
 
-func (self *RequestHistory) AddFromMozillaObject(
-	obj js.Value,
-	clear_tab_history_on_documentUrl_undefined bool,
-) error {
+func (self *RequestHistory) AddFromMozillaObject(obj js.Value) (*RequestHistoryItem, error) {
 
 	date := time.Now().UTC()
 
@@ -52,7 +53,7 @@ func (self *RequestHistory) AddFromMozillaObject(
 
 	u, err := url.Parse(req_url)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var doc_url *string
@@ -71,20 +72,31 @@ func (self *RequestHistory) AddFromMozillaObject(
 		TabId:       tabId,
 		FrameId:     obj.Get("frameId").Int(),
 		RequestId:   obj.Get("requestId").String(),
-		Host:        strings.ToLower(u.Host),
+		Host:        strings.ToLower(u.Hostname()),
 		URL:         req_url,
 		DocumentURL: doc_url,
 	}
 
-	b, err := json.MarshalIndent(new_item, "  ", "  ")
-	if err != nil {
-		return err
-	}
+	// b, err := json.MarshalIndent(new_item, "  ", "  ")
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	log.Println("new_item", string(b))
+	// TODO: disable this
+	// log.Println("new_item", string(b))
 
 	self.items = append(self.items, new_item)
 
+	return new_item, nil
+}
+
+func (self *RequestHistory) TabIdGetMainRequestEntry(tabId int) *RequestHistoryItem {
+	// TODO: optimization required
+	for _, i := range self.items {
+		if i.DocumentURL == nil {
+			return i
+		}
+	}
 	return nil
 }
 
