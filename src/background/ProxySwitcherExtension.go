@@ -19,12 +19,6 @@ import (
 // TODO: currently, rule sets are based only on domain names. it is possible,
 //       site destinguishing by ports/schemas/etc are also required
 
-type SettingsStruct struct {
-	domain           string
-	domainDomainName *domainname.DomainName
-	rules            *DomainSettings
-}
-
 type ProxySwitcherExtension struct {
 	request_history *RequestHistory
 	config          *ConfigModel
@@ -516,6 +510,13 @@ func (self *ProxySwitcherExtension) ProxyTargetList() [][2]string {
 	return ret
 }
 
+type SettingsStruct struct {
+	// TODO: try using this shortcut if preformance needed
+	// domain           string
+	domainDomainName *domainname.DomainName
+	rules            *DomainSettings
+}
+
 func (self *ProxySwitcherExtension) CalculateCurrentRules(
 	request_host string,
 	subrequest_host string,
@@ -538,7 +539,6 @@ func (self *ProxySwitcherExtension) CalculateCurrentRules(
 			matching_settings = append(
 				matching_settings,
 				&SettingsStruct{
-					domain:           v.Domain.String(),
 					domainDomainName: v.Domain,
 					rules:            v,
 				},
@@ -560,7 +560,7 @@ func (self *ProxySwitcherExtension) CalculateCurrentRules(
 
 	log.Printf("matching settings %d:", len(matching_settings))
 	for _, i := range matching_settings {
-		log.Println("   ", i.domain)
+		log.Println("   ", i.domainDomainName.String())
 	}
 
 	ret := &Rules{}
@@ -571,7 +571,8 @@ func (self *ProxySwitcherExtension) CalculateCurrentRules(
 			subrequest_host,
 			ret,
 			0,
-			matching_settings, matching_settings[len(matching_settings)-1].domain,
+			matching_settings,
+			// matching_settings[len(matching_settings)-1].domainDomainName.String(),
 		)
 
 		self.CalculateCurrentRulesRulePart(
@@ -579,7 +580,8 @@ func (self *ProxySwitcherExtension) CalculateCurrentRules(
 			subrequest_host,
 			ret,
 			1,
-			matching_settings, matching_settings[len(matching_settings)-1].domain,
+			matching_settings,
+			// matching_settings[len(matching_settings)-1].domainDomainName.String(),
 		)
 
 		self.CalculateCurrentRulesRulePart(
@@ -587,7 +589,8 @@ func (self *ProxySwitcherExtension) CalculateCurrentRules(
 			subrequest_host,
 			ret,
 			2,
-			matching_settings, matching_settings[len(matching_settings)-1].domain,
+			matching_settings,
+			// matching_settings[len(matching_settings)-1].domainDomainName.String(),
 		)
 	}
 	return ret
@@ -599,24 +602,57 @@ func (self *ProxySwitcherExtension) CalculateCurrentRulesRulePart(
 	rules_structure *Rules,
 	mode int, // TODO: use named constants here
 	matched_domain_setting_structs_slice []*SettingsStruct,
-	start_with_domain string,
+	// start_with_domain string,
 ) error {
 
-	// var (
-	// 	str_in_q   *SettingsStruct
-	// 	str_in_q_i int
-	// )
+	var (
+		str_in_q   *SettingsStruct
+		str_in_q_i int
+	)
+
+	str_in_q_i = len(matched_domain_setting_structs_slice)
+
+loop0:
+	str_in_q_i--
+	if str_in_q_i == -1 {
+		// TODO: use global setting and return
+	}
+	str_in_q = matched_domain_setting_structs_slice[str_in_q_i]
 
 	// for i := len(matched_domain_setting_structs_slice) - 1; i != -1; i = i - 1 {
-	// 	if matched_domain_setting_structs_slice[i].domain == start_with_domain {
+	// 	if matched_domain_setting_structs_slice[i].domainDomainName.String() == start_with_domain {
 	// 		str_in_q_i = i
 	// 		str_in_q = matched_domain_setting_structs_slice[i]
+	// 		break
 	// 	}
 	// }
 
-	// if mode == 0 {
+	switch mode {
+	default:
+		log.Println("programming error")
+		return errors.New("programming error")
+	case 0:
+		v := str_in_q.rules.RulesAndInheritance.Rules.HttpRule
 
-	// }
+		switch v {
+		default:
+			log.Println("programming error")
+			return errors.New("programming error")
+		case HttpRuleUndefined:
+			goto loop0
+		case HttpRuleBlock:
+		case HttpRuleConvertToHttps:
+
+		case HttpRulePass:
+			// pass
+
+		}
+
+	}
+
+	if mode == 0 {
+
+	}
 
 	return nil
 }

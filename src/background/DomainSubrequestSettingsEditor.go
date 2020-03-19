@@ -28,9 +28,9 @@ type DomainSubrequestSettingsEditor struct {
 }
 
 func NewDomainSubrequestSettingsEditor(
-	etc *elementtreeconstructor.ElementTreeConstructor,
-	extension *ProxySwitcherExtension,
 	settings *DomainSubrequestSettings,
+	extension *ProxySwitcherExtension,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	ondelete func(domain string),
 	onrename func(old_name, new_name string),
 	onapply func(domain string),
@@ -71,9 +71,10 @@ func NewDomainSubrequestSettingsEditor(
 		)
 
 	self.hRulesAndInheritanceEditor = NewRulesAndInheritanceEditor(
-		etc,
+		self.DomainSubrequestSettings.RulesAndInheritance.Copy(),
+		false,
 		self.extension,
-		self.DomainSubrequestSettings.RulesAndInheritance, // TODO: make copy? yes!
+		etc,
 		func() {
 			self.DomainSubrequestSettings.RulesAndInheritance =
 				self.hRulesAndInheritanceEditor.RulesAndInheritance

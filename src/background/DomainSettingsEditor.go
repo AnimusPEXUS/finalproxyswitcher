@@ -13,6 +13,7 @@ type DomainSettingsEditor struct {
 	etc       *elementtreeconstructor.ElementTreeConstructor
 	extension *ProxySwitcherExtension
 
+	root_mode      bool
 	DomainSettings *DomainSettings
 	Element        *elementtreeconstructor.ElementMutator
 
@@ -35,9 +36,10 @@ type DomainSettingsEditor struct {
 }
 
 func NewDomainSettingsEditor(
-	etc *elementtreeconstructor.ElementTreeConstructor,
-	extension *ProxySwitcherExtension,
 	settings *DomainSettings,
+	root_mode bool,
+	extension *ProxySwitcherExtension,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	// onchange func(),
 	ondelete func(domain string),
 	onrename func(domain0, domain1 string),
@@ -45,6 +47,7 @@ func NewDomainSettingsEditor(
 ) *DomainSettingsEditor {
 
 	self := &DomainSettingsEditor{
+		root_mode:      root_mode,
 		etc:            etc,
 		extension:      extension,
 		DomainSettings: settings,
@@ -90,9 +93,10 @@ func NewDomainSettingsEditor(
 		// }
 
 		self.rules_and_inheritance_editor = NewRulesAndInheritanceEditor(
-			etc,
-			self.extension,
 			self.DomainSettings.RulesAndInheritance.Copy(),
+			root_mode,
+			self.extension,
+			etc,
 			func() {
 				self.DomainSettings.RulesAndInheritance =
 					self.rules_and_inheritance_editor.RulesAndInheritance
@@ -107,9 +111,10 @@ func NewDomainSettingsEditor(
 		// }
 
 		self.domain_settings_subrequest_defaults_editor = NewRulesAndInheritanceEditor(
-			etc,
-			self.extension,
 			self.DomainSettings.DomainSubrequestSettingsDefaults.Copy(),
+			false,
+			self.extension,
+			etc,
 			func() {
 				self.DomainSettings.DomainSubrequestSettingsDefaults =
 					self.domain_settings_subrequest_defaults_editor.RulesAndInheritance
@@ -133,9 +138,9 @@ func NewDomainSettingsEditor(
 			}
 
 			e := NewDomainSubrequestSettingsEditor(
-				etc,
-				self.extension,
 				nil,
+				self.extension,
+				etc,
 				// self.OnSubEditorChanged,
 				self.OnSubEditorDelete,
 				self.OnSubEditorRename,
@@ -169,25 +174,24 @@ func NewDomainSettingsEditor(
 		nil,
 		etc,
 		func() {
-
-			old_name := self.DomainSettings.Domain.String()
-			new_name := self.domain_input.GetJsValue("value").String()
-
-			self.onapply(old_name)
-
-			if old_name != new_name {
-				self.onrename(old_name, new_name)
-				self.DomainSettings.Domain.SetFromString(new_name)
-			}
-
-			self.Unchanged()
+			self.ApplySettings()
 		},
 	)
 
-	self.Element = etc.CreateElement("div").
+	title := "This Domain Settings"
+	if root_mode {
+		title = "Root Settings"
+	}
+
+	self.Element = etc.CreateElement("div")
+
+	domain_input_element := (*elementtreeconstructor.ElementMutator)(nil)
+
+	self.Element.
 		AppendChildren(
 			etc.CreateElement("div").
 				ExternalUse(applyBlackRoundedBoxInRuleEditor).
+				AssignSelf(&domain_input_element).
 				AppendChildren(
 					self.domain_input,
 					remove_btn.Element,
@@ -203,7 +207,7 @@ func NewDomainSettingsEditor(
 			etc.CreateElement("div").
 				ExternalUse(applyBlackRoundedBoxInRuleEditor).
 				AppendChildren(
-					etc.CreateTextNode("This Domain Settings"),
+					etc.CreateTextNode(title),
 					self.rules_and_inheritance_editor.Element,
 				),
 			etc.CreateElement("div").
@@ -229,6 +233,10 @@ func NewDomainSettingsEditor(
 		SetStyle("padding", "3px").
 		SetStyle("display", "grid").
 		SetStyle("gap", "3px")
+
+	if root_mode {
+		domain_input_element.SetStyle("display", "none")
+	}
 
 	self.Reload()
 
@@ -261,9 +269,9 @@ func (self *DomainSettingsEditor) Reload() {
 
 	for _, k := range keys {
 		ed := NewDomainSubrequestSettingsEditor(
-			self.etc,
-			self.extension,
 			self.DomainSettings.DomainSubrequestSettings[k].Copy(),
+			self.extension,
+			self.etc,
 			// self.OnSubEditorChanged,
 			self.OnSubEditorDelete,
 			self.OnSubEditorRename,
@@ -274,6 +282,20 @@ func (self *DomainSettingsEditor) Reload() {
 	}
 
 	return
+}
+
+func (self *DomainSettingsEditor) ApplySettings() {
+	old_name := self.DomainSettings.Domain.String()
+	new_name := self.domain_input.GetJsValue("value").String()
+
+	self.onapply(old_name)
+
+	if old_name != new_name {
+		self.onrename(old_name, new_name)
+		self.DomainSettings.Domain.SetFromString(new_name)
+	}
+
+	self.Unchanged()
 }
 
 func (self *DomainSettingsEditor) SubEditorDelete(domain string) {
@@ -332,6 +354,9 @@ func (self *DomainSettingsEditor) OnSubEditorApply(domain string) {
 
 func (self *DomainSettingsEditor) Changed() {
 	self.changed_asterisk.SetStyle("display", "inline")
+	if self.root_mode {
+		self.ApplySettings()
+	}
 }
 
 func (self *DomainSettingsEditor) Unchanged() {

@@ -21,9 +21,9 @@ type RulesEditor struct {
 }
 
 func NewRulesEditor(
-	etc *elementtreeconstructor.ElementTreeConstructor,
-	extension *ProxySwitcherExtension,
 	preset_rules *Rules,
+	extension *ProxySwitcherExtension,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	onchange func(),
 ) *RulesEditor {
 

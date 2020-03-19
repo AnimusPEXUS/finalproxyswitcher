@@ -20,9 +20,10 @@ type RulesAndInheritanceEditor struct {
 }
 
 func NewRulesAndInheritanceEditor(
-	etc *elementtreeconstructor.ElementTreeConstructor,
-	extension *ProxySwitcherExtension,
 	preset_rules_and_inheritance *RulesAndInheritance,
+	root_editor_mode bool,
+	extension *ProxySwitcherExtension,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	onchange func(),
 ) *RulesAndInheritanceEditor {
 
@@ -41,6 +42,10 @@ func NewRulesAndInheritanceEditor(
 	apply_to_subdomains_cb := etc.CreateElement("input").
 		Set("type", "checkbox").
 		Set("checked", self.RulesAndInheritance.ApplyToSubdomains)
+
+	if root_editor_mode {
+		apply_to_subdomains_cb.Set("disabled", true)
+	}
 
 	apply_to_subdomains_cb.Set(
 		"onchange",
@@ -61,9 +66,9 @@ func NewRulesAndInheritanceEditor(
 	)
 
 	self.rules_inheritance_editor = NewRuleInheritanceEditor(
-		etc,
-		extension,
 		self.RulesAndInheritance.RulesInheritance.Copy(),
+		extension,
+		etc,
 		func() {
 			self.RulesAndInheritance.RulesInheritance = self.rules_inheritance_editor.RulesInheritance
 			int_onchange()
@@ -71,9 +76,9 @@ func NewRulesAndInheritanceEditor(
 	)
 
 	self.rules_editor = NewRulesEditor(
-		etc,
-		extension,
 		self.RulesAndInheritance.Rules.Copy(),
+		extension,
+		etc,
 		func() {
 			self.RulesAndInheritance.Rules = self.rules_editor.Rules
 			int_onchange()
@@ -94,9 +99,13 @@ func NewRulesAndInheritanceEditor(
 					apply_to_subdomains_cb.Element,
 					etc.CreateTextNode("Apply To Subdomains"),
 				),
-			self.rules_inheritance_editor.Element,
-			self.rules_editor.Element,
 		)
+
+	if !root_editor_mode {
+		self.Element.AppendChildren(self.rules_inheritance_editor.Element)
+	}
+
+	self.Element.AppendChildren(self.rules_editor.Element)
 
 	return self
 }

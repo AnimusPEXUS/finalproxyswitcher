@@ -28,7 +28,7 @@ type MainWindow struct {
 	// export_active_settings_button *elementtreeconstructor.ElementMutator
 	// import_active_settings_button *elementtreeconstructor.ElementMutator
 
-	root_rules_editor *RulesEditor
+	root_rules_editor *DomainSettingsEditor
 
 	Element *elementtreeconstructor.ElementMutator
 }
@@ -58,12 +58,17 @@ func NewMainWindow(
 		extension,
 	)
 
-	self.root_rules_editor = NewRulesEditor(
-		etc,
-		extension,
+	self.root_rules_editor = NewDomainSettingsEditor(
 		self.extension.config.RootRules.Copy(),
-		func() {
-			self.extension.config.RootRules = self.root_rules_editor.Rules
+		true,
+		extension,
+		etc,
+		func(domain string) {
+		},
+		func(domain0, domain1 string) {
+		},
+		func(domain string) {
+			self.extension.config.RootRules = self.root_rules_editor.DomainSettings
 			self.Changed()
 		},
 	)

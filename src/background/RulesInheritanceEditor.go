@@ -20,9 +20,9 @@ type RulesInheritanceEditor struct {
 }
 
 func NewRuleInheritanceEditor(
-	etc *elementtreeconstructor.ElementTreeConstructor,
-	extension *ProxySwitcherExtension,
 	preset_rules_inheritance *RulesInheritance,
+	extension *ProxySwitcherExtension,
+	etc *elementtreeconstructor.ElementTreeConstructor,
 	onchange func(),
 ) *RulesInheritanceEditor {
 

@@ -6,7 +6,7 @@ import (
 
 type (
 	ConfigModel struct {
-		RootRules    *Rules
+		RootRules    *DomainSettings
 		ProxyTargets map[string]*ProxyTarget
 		RuleSet      map[string]*DomainSettings
 	}

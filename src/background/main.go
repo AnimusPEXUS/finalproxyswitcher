@@ -33,6 +33,8 @@ func main() {
 		}
 	}()
 
+	log.SetFlags(log.Lshortfile)
+
 	log.Println("ProxySwitcherExtension init")
 
 	pse = NewProxySwitcherExtension()
