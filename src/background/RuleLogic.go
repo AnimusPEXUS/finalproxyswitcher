@@ -6,6 +6,9 @@ import (
 
 // TODO: add cookies
 
+// TODO: using "=" turned out bad decision, as in such case golang doesn't
+//       check correctness of cases in rules switch as intended.
+//       haw to figure out how to do this smarter
 type RuleInheritance = uint
 
 const (

@@ -60,7 +60,7 @@ func (self *RequestHistory) AddFromMozillaObject(obj js.Value) (*RequestHistoryI
 
 	tabId := obj.Get("tabId").Int()
 
-	if documentUrl := obj.Get("documentUrl"); documentUrl != js.Undefined() {
+	if documentUrl := obj.Get("documentUrl"); !documentUrl.IsUndefined() {
 		t := documentUrl.String()
 		doc_url = &t
 	} else {

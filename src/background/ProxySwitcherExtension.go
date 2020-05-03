@@ -259,6 +259,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 	for _, i := range []string{
 		".onion",
 		".animespirit.ru",
+		".animespirit.online",
 		".anilibria.tv",
 		".slack.com",
 		".slack-edge.com",
@@ -566,6 +567,7 @@ func (self *ProxySwitcherExtension) CalculateCurrentRules(
 	ret := &Rules{}
 
 	if len(matching_settings) != 0 {
+		// TODO: add error handeling
 		self.CalculateCurrentRulesRulePart(
 			request_host,
 			subrequest_host,
@@ -575,6 +577,7 @@ func (self *ProxySwitcherExtension) CalculateCurrentRules(
 			// matching_settings[len(matching_settings)-1].domainDomainName.String(),
 		)
 
+		// TODO: add error handeling
 		self.CalculateCurrentRulesRulePart(
 			request_host,
 			subrequest_host,
@@ -584,6 +587,7 @@ func (self *ProxySwitcherExtension) CalculateCurrentRules(
 			// matching_settings[len(matching_settings)-1].domainDomainName.String(),
 		)
 
+		// TODO: add error handeling
 		self.CalculateCurrentRulesRulePart(
 			request_host,
 			subrequest_host,
@@ -593,6 +597,10 @@ func (self *ProxySwitcherExtension) CalculateCurrentRules(
 			// matching_settings[len(matching_settings)-1].domainDomainName.String(),
 		)
 	}
+
+	b, _ := json.MarshalIndent(ret, "  ", "  ")
+
+	log.Printf("Calculated Rule: %s", string(b))
 	return ret
 }
 
@@ -614,44 +622,68 @@ func (self *ProxySwitcherExtension) CalculateCurrentRulesRulePart(
 
 loop0:
 	str_in_q_i--
-	if str_in_q_i == -1 {
-		// TODO: use global setting and return
+
+	if str_in_q_i < 0 {
+		switch mode {
+		default:
+			log.Println("programming error")
+			return errors.New("programming error")
+		case 0:
+			rules_structure.HttpRule = self.config.RootRules.RulesAndInheritance.Rules.HttpRule
+		case 1:
+			rules_structure.RequestRule = self.config.RootRules.RulesAndInheritance.Rules.RequestRule
+		case 2:
+			rules_structure.ProxyRule = self.config.RootRules.RulesAndInheritance.Rules.ProxyRule
+			rules_structure.ProxyTarget = self.config.RootRules.RulesAndInheritance.Rules.ProxyTarget
+		}
+		return nil
 	}
+
 	str_in_q = matched_domain_setting_structs_slice[str_in_q_i]
 
-	// for i := len(matched_domain_setting_structs_slice) - 1; i != -1; i = i - 1 {
-	// 	if matched_domain_setting_structs_slice[i].domainDomainName.String() == start_with_domain {
-	// 		str_in_q_i = i
-	// 		str_in_q = matched_domain_setting_structs_slice[i]
-	// 		break
-	// 	}
-	// }
+	if (mode == 0 && str_in_q.rules.RulesAndInheritance.Rules.HttpRule == HttpRuleUndefined) ||
+		(mode == 1 && str_in_q.rules.RulesAndInheritance.Rules.RequestRule == RequestRuleUndefined) ||
+		(mode == 2 && str_in_q.rules.RulesAndInheritance.Rules.ProxyRule == ProxyRuleUndefined) {
+
+		sw_value := RuleInheritance(0)
+		switch mode {
+		default:
+			log.Println("programming error")
+			return errors.New("programming error")
+		case 0:
+			sw_value = str_in_q.rules.RulesAndInheritance.RulesInheritance.HttpRuleInheritance
+		case 1:
+			sw_value = str_in_q.rules.RulesAndInheritance.RulesInheritance.RequestRuleInheritance
+		case 2:
+			sw_value = str_in_q.rules.RulesAndInheritance.RulesInheritance.ProxyRuleInheritance
+		}
+
+		switch sw_value {
+		default:
+			log.Println("programming error")
+			return errors.New("programming error")
+		case RuleInheritanceNone:
+			fallthrough
+		case RuleInheritanceGlobal:
+			str_in_q_i = 0
+			fallthrough
+		case RuleInheritanceParent:
+			goto loop0
+		}
+
+	}
 
 	switch mode {
 	default:
 		log.Println("programming error")
 		return errors.New("programming error")
 	case 0:
-		v := str_in_q.rules.RulesAndInheritance.Rules.HttpRule
-
-		switch v {
-		default:
-			log.Println("programming error")
-			return errors.New("programming error")
-		case HttpRuleUndefined:
-			goto loop0
-		case HttpRuleBlock:
-		case HttpRuleConvertToHttps:
-
-		case HttpRulePass:
-			// pass
-
-		}
-
-	}
-
-	if mode == 0 {
-
+		rules_structure.HttpRule = str_in_q.rules.RulesAndInheritance.Rules.HttpRule
+	case 1:
+		rules_structure.RequestRule = str_in_q.rules.RulesAndInheritance.Rules.RequestRule
+	case 2:
+		rules_structure.ProxyRule = str_in_q.rules.RulesAndInheritance.Rules.ProxyRule
+		rules_structure.ProxyTarget = str_in_q.rules.RulesAndInheritance.Rules.ProxyTarget
 	}
 
 	return nil
