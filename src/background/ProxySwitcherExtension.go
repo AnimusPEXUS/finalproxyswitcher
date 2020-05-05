@@ -258,35 +258,50 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 
 	for _, i := range []string{
 		".onion",
-		".animespirit.ru",
-		".animespirit.online",
-		".animespirit.cc",
-		".anilibria.tv",
-		".slack.com",
-		".slack-edge.com",
-		"design.firefox.com",
-		".xvideos.com",
-		".hentai4manga.com",
-		".golang.org",
-		".origin.com",
-		".ea.com",
-		".facebook.com",
-		".fbcdn.net",
+
 		".thepiratebay.org",
-		".xuk.life",
-		".lurkmore.to",
+
 		".protonmail.com",
+
+		".google.com",
+		".googleapis.com",
+
 		".telegra.ph",
 		".t.me",
 		".telegram.org",
+
 		".linkedin.com",
-		".slack-redir.net",
+
+		".animespirit.ru",
+		".animespirit.online",
+		".animespirit.cc",
+
+		".anilibria.tv",
+
+		".golang.org",
+		"design.firefox.com",
+
+		".dub.pm",
+
 		".github.com",
 		".githubassets.com",
 		".githubusercontent.com",
-		".google.com",
-		".googleapis.com",
-		".dub.pm",
+
+		".slack.com",
+		".slack-edge.com",
+		".slack-redir.net",
+
+		".origin.com",
+		".ea.com",
+
+		".facebook.com",
+		".fbcdn.net",
+
+		".xvideos.com",
+		".hentai4manga.com",
+		".xuk.life",
+
+		".lurkmore.to",
 	} {
 
 		c := i
