@@ -260,6 +260,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".onion",
 		".animespirit.ru",
 		".animespirit.online",
+		".animespirit.cc",
 		".anilibria.tv",
 		".slack.com",
 		".slack-edge.com",
