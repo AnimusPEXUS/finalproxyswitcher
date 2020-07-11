@@ -4,7 +4,7 @@ import (
 	"log"
 	"syscall/js"
 
-	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/gojstools/elementtreeconstructor"
 )
 
 type ProxyTargetEditor struct {

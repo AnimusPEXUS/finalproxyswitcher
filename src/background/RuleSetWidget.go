@@ -3,8 +3,8 @@ package main
 import (
 	"sort"
 
-	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
-	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
+	"github.com/AnimusPEXUS/gojstools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/gojstools/widgetcollection"
 )
 
 type RuleSetWidget struct {

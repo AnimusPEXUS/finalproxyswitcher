@@ -4,9 +4,9 @@ import (
 	"sort"
 	"syscall/js"
 
+	"github.com/AnimusPEXUS/gojstools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/gojstools/widgetcollection"
 	"github.com/AnimusPEXUS/utils/domainname"
-	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
-	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
 )
 
 type DomainSettingsEditor struct {

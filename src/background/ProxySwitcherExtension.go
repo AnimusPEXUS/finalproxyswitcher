@@ -10,10 +10,10 @@ import (
 	"syscall/js"
 	"time"
 
+	"github.com/AnimusPEXUS/gojstools/elementtreeconstructor"
+	pexu_dom "github.com/AnimusPEXUS/gojswebapi/dom"
+	pexu_promise "github.com/AnimusPEXUS/gojswebapi/promise"
 	"github.com/AnimusPEXUS/utils/domainname"
-	pexu_dom "github.com/AnimusPEXUS/wasmtools/dom"
-	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
-	pexu_promise "github.com/AnimusPEXUS/wasmtools/promise"
 )
 
 // TODO: currently, rule sets are based only on domain names. it is possible,

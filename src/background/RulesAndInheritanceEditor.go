@@ -3,10 +3,10 @@ package main
 import (
 	"syscall/js"
 
-	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/gojstools/elementtreeconstructor"
 )
 
-//	pexu_wsm_misc "github.com/AnimusPEXUS/wasmtools/misc"
+//	pexu_wsm_misc "github.com/AnimusPEXUS/gojstools/utils"
 
 type RulesAndInheritanceEditor struct {
 	value_select *elementtreeconstructor.ElementMutator

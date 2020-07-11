@@ -6,9 +6,9 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/AnimusPEXUS/wasmtools/elementtreeconstructor"
-	pexu_promise "github.com/AnimusPEXUS/wasmtools/promise"
-	"github.com/AnimusPEXUS/wasmtools/widgetcollection"
+	"github.com/AnimusPEXUS/gojstools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/gojstools/widgetcollection"
+	pexu_promise "github.com/AnimusPEXUS/gojswebapi/promise"
 )
 
 type MainWindow struct {
