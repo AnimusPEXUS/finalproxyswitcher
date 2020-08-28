@@ -18,6 +18,13 @@ var TOR_PROXY = map[string]interface{}{
 	"proxyDNS": true,
 }
 
+var I2P_PROXY = map[string]interface{}{
+	"type":     "socks",
+	"host":     "127.0.0.1",
+	"port":     "9052",
+	"proxyDNS": true,
+}
+
 var DIRECT_PROXY = map[string]interface{}{
 	"type": "direct",
 }

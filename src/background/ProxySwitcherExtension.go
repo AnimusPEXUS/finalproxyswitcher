@@ -317,6 +317,23 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		}
 	}
 
+	for _, i := range []string{
+		".i2p",
+	} {
+
+		c := i
+
+		subdomains := c[0] == '.'
+
+		if subdomains {
+			c = c[1:]
+		}
+
+		if c == url_p.Host || (subdomains && strings.HasSuffix(url_p.Host, "."+c)) {
+			return I2P_PROXY
+		}
+	}
+
 	return DIRECT_PROXY
 }
 
