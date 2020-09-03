@@ -283,6 +283,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 
 		".intel.com",
 		".drone.io",
+		".allelectronics.com",
 
 		".dub.pm",
 
