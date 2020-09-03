@@ -281,6 +281,9 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".golang.org",
 		"design.firefox.com",
 
+		".intel.com",
+		".drone.io",
+
 		".dub.pm",
 
 		".github.com",
