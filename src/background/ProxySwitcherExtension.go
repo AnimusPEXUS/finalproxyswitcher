@@ -306,6 +306,8 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".xuk.life",
 
 		".lurkmore.to",
+		".vk.com",
+		".mail.ru",
 	} {
 
 		c := i
