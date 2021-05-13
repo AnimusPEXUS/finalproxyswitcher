@@ -57,7 +57,7 @@ func (self *ProxySwitcherExtension) GetStorageLocalValue(name string) (string, e
 		name,
 	)
 
-	config_promise, err := pexu_promise.NewPromiseFromJSValue(config_promise_js)
+	config_promise, err := pexu_promise.NewPromiseFromJSValue(&config_promise_js)
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +68,7 @@ func (self *ProxySwitcherExtension) GetStorageLocalValue(name string) (string, e
 	perr := make(chan bool)
 
 	config_promise.Then(
-		js.FuncOf(func(
+		&[]js.Func{js.FuncOf(func(
 			this js.Value,
 			args []js.Value,
 		) interface{} {
@@ -80,15 +80,15 @@ func (self *ProxySwitcherExtension) GetStorageLocalValue(name string) (string, e
 			psucc <- true
 			return false
 		},
-		),
-		js.FuncOf(func(
+		)}[0],
+		&[]js.Func{js.FuncOf(func(
 			this js.Value,
 			args []js.Value,
 		) interface{} {
 			perr <- true
 			return false
 		},
-		),
+		)}[0],
 	)
 
 	select {
@@ -201,28 +201,28 @@ func (self *ProxySwitcherExtension) SaveConfig() error {
 	psucc := make(chan bool)
 	perr := make(chan bool)
 
-	config_promise, err := pexu_promise.NewPromiseFromJSValue(config_promise_js)
+	config_promise, err := pexu_promise.NewPromiseFromJSValue(&config_promise_js)
 	if err != nil {
 		return err
 	}
 
 	config_promise.Then(
-		js.FuncOf(func(
+		&[]js.Func{js.FuncOf(func(
 			this js.Value,
 			args []js.Value,
 		) interface{} {
 			psucc <- true
 			return false
 		},
-		),
-		js.FuncOf(func(
+		)}[0],
+		&[]js.Func{js.FuncOf(func(
 			this js.Value,
 			args []js.Value,
 		) interface{} {
 			perr <- true
 			return false
 		},
-		),
+		)}[0],
 	)
 
 	select {
@@ -308,6 +308,9 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".lurkmore.to",
 		".vk.com",
 		".mail.ru",
+
+		".opennet.ru",
+		".linux.org.ru",
 	} {
 
 		c := i
@@ -478,7 +481,7 @@ func (self *ProxySwitcherExtension) RenderMainWindow(
 
 		window_document := args[0].Get("document")
 
-		pexu_dom_document := &pexu_dom.Document{window_document}
+		pexu_dom_document := &pexu_dom.Document{&window_document}
 
 		etc := elementtreeconstructor.NewElementTreeConstructor(pexu_dom_document)
 

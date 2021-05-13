@@ -283,7 +283,7 @@ func NewMainWindow(
 																	if files.Length() != 0 {
 																		file := files.Index(0)
 
-																		file_text_promise := file.Call("text")
+																		file_text_promise := &([]js.Value{file.Call("text")}[0])
 
 																		file_text_promise_go, err := pexu_promise.NewPromiseFromJSValue(file_text_promise)
 																		if err != nil {
@@ -296,7 +296,7 @@ func NewMainWindow(
 																		perr := make(chan bool)
 
 																		file_text_promise_go.Then(
-																			js.FuncOf(func(
+																			&[]js.Func{js.FuncOf(func(
 																				this js.Value,
 																				args []js.Value,
 																			) interface{} {
@@ -304,15 +304,15 @@ func NewMainWindow(
 																				psucc <- true
 																				return false
 																			},
-																			),
-																			js.FuncOf(func(
+																			)}[0],
+																			&[]js.Func{js.FuncOf(func(
 																				this js.Value,
 																				args []js.Value,
 																			) interface{} {
 																				perr <- true
 																				return false
 																			},
-																			),
+																			)}[0],
 																		)
 
 																		select {

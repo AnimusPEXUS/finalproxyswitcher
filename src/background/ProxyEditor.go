@@ -363,11 +363,11 @@ func NewProxyTargetEditor(
 				this js.Value,
 				args []js.Value,
 			) interface{} {
-				name := self.name_text.Element.Get("value").String()
+				name := self.name_text.Element.Node.JSValue.Get("value").String()
 				self.setting_name = name
 
 				info := &ProxyTarget{}
-				info.Type = self.type_select.Element.Get("value").String()
+				info.Type = self.type_select.Element.Node.JSValue.Get("value").String()
 
 				if self.host_text_cb.GetJsValue("checked").Bool() {
 					info.Host = &[]string{self.host_text.GetJsValue("value").String()}[0]
@@ -494,7 +494,7 @@ func NewProxyTargetEditor(
 			"onchange",
 			func(cb, target *elementtreeconstructor.ElementMutator) js.Func {
 				t2 := func() {
-					checked := cb.Element.Get("checked").Bool()
+					checked := cb.Element.Node.JSValue.Get("checked").Bool()
 					target.Set("disabled", !checked)
 					if checked {
 						target.SetStyle("display", "inline")
