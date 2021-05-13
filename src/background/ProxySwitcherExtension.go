@@ -304,6 +304,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".xvideos.com",
 		".hentai4manga.com",
 		".xuk.life",
+		".nhentai.net",
 
 		".lurkmore.to",
 		".vk.com",
