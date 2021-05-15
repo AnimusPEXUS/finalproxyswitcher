@@ -355,11 +355,23 @@ func (self *ProxySwitcherExtension) BrowserWebRequestOnBeforeRequestHandler(
 	ret := map[string]interface{}{}
 
 	if len(args) != 1 {
+		log.Println("len(args) != 1 : cancel")
 		ret["cancel"] = true
 		return ret
 	}
 
-	record, _ := self.request_history.AddFromMozillaObject(args[0])
+	record, err := self.request_history.AddFromMozillaObject(args[0])
+	if err != nil {
+		log.Println("AddFromMozillaObject == err : cancel")
+		ret["cancel"] = true
+		return ret
+	}
+
+	if record == nil {
+		log.Println("record == nil: cancel")
+		ret["cancel"] = true
+		return ret
+	}
 
 	log.Println(record.String())
 
@@ -369,7 +381,9 @@ func (self *ProxySwitcherExtension) BrowserWebRequestOnBeforeRequestHandler(
 
 	u, err := url.Parse(record.URL)
 	if err != nil {
-		// TODO: block request
+		log.Println("parsing failure: cancel")
+		ret["cancel"] = true
+		return ret
 	}
 
 	request_domain := ""
@@ -385,7 +399,9 @@ func (self *ProxySwitcherExtension) BrowserWebRequestOnBeforeRequestHandler(
 		// }
 		u2, err := url.Parse(*record.DocumentURL)
 		if err != nil {
-			// TODO: block request
+			log.Println("parsing failure 2: cancel")
+			ret["cancel"] = true
+			return ret
 		}
 		request_domain = u2.Hostname()
 		subrequest_domain = u.Hostname()
