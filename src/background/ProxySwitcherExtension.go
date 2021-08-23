@@ -243,13 +243,20 @@ func (self *ProxySwitcherExtension) SaveConfig() error {
 func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 	this js.Value,
 	args []js.Value,
-) interface{} {
+) (ret interface{}) {
+
+	url_s := args[0].Get("url").String()
+
+	ret = DEFAULT_PROXY
+
+	defer func() {
+		b, _ := json.MarshalIndent(ret, "  ", "  ")
+		log.Println("resulting proxy for", url_s, "is", string(b))
+	}()
 
 	if len(args) != 1 {
 		return DEFAULT_PROXY
 	}
-
-	url_s := args[0].Get("url").String()
 
 	url_p, err := url.Parse(url_s)
 	if err != nil {
@@ -259,12 +266,21 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 	for _, i := range []string{
 		".onion",
 
+		".cloudflare-dns.com",
+
 		".thepiratebay.org",
 
 		".protonmail.com",
 
 		".google.com",
 		".googleapis.com",
+		".chrome.com",
+		".developer.android.com",
+
+		".sourceforge.net",
+		".sf.net",
+
+		".atlassian.com",
 
 		".telegra.ph",
 		".t.me",
@@ -284,6 +300,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".intel.com",
 		".drone.io",
 		".allelectronics.com",
+		".alldatasheet.com",
 
 		".dub.pm",
 
