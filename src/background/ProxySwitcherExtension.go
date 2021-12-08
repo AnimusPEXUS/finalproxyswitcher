@@ -265,6 +265,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 
 	for _, i := range []string{
 		".onion",
+		".torproject.org",
 
 		".cloudflare-dns.com",
 
