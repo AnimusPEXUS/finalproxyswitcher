@@ -2,7 +2,13 @@ VERSION=0.7.1.5
 
 all:
 
-build:
+"$(GOROOT)/misc/wasm/wasm_exec.js":
+    
+
+wasm_exec.js: "$(GOROOT)/misc/wasm/wasm_exec.js"
+		cp "$(GOROOT)/misc/wasm/wasm_exec.js" .
+
+build: wasm_exec.js
 		make -C ../background
 
 dist: build
