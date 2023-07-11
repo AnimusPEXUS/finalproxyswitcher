@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/AnimusPEXUS/gojstools/elementtreeconstructor"
-	pexu_dom "github.com/AnimusPEXUS/gojswebapi/dom"
-	pexu_promise "github.com/AnimusPEXUS/gojswebapi/promise"
+	pexu_promise "github.com/AnimusPEXUS/gojstools/std/promise"
+	pexu_dom "github.com/AnimusPEXUS/gojstools/webapi/dom"
 	"github.com/AnimusPEXUS/utils/domainname"
 )
 
@@ -57,7 +57,7 @@ func (self *ProxySwitcherExtension) GetStorageLocalValue(name string) (string, e
 		name,
 	)
 
-	config_promise, err := pexu_promise.NewPromiseFromJSValue(&config_promise_js)
+	config_promise, err := pexu_promise.NewPromiseFromJSValue(config_promise_js)
 	if err != nil {
 		return "", err
 	}
@@ -67,8 +67,8 @@ func (self *ProxySwitcherExtension) GetStorageLocalValue(name string) (string, e
 	psucc := make(chan bool)
 	perr := make(chan bool)
 
-	config_promise.Then(
-		&[]js.Func{js.FuncOf(func(
+	config_promise.Then2(
+		js.FuncOf(func(
 			this js.Value,
 			args []js.Value,
 		) interface{} {
@@ -80,15 +80,15 @@ func (self *ProxySwitcherExtension) GetStorageLocalValue(name string) (string, e
 			psucc <- true
 			return false
 		},
-		)}[0],
-		&[]js.Func{js.FuncOf(func(
+		),
+		js.FuncOf(func(
 			this js.Value,
 			args []js.Value,
 		) interface{} {
 			perr <- true
 			return false
 		},
-		)}[0],
+		),
 	)
 
 	select {
@@ -201,28 +201,28 @@ func (self *ProxySwitcherExtension) SaveConfig() error {
 	psucc := make(chan bool)
 	perr := make(chan bool)
 
-	config_promise, err := pexu_promise.NewPromiseFromJSValue(&config_promise_js)
+	config_promise, err := pexu_promise.NewPromiseFromJSValue(config_promise_js)
 	if err != nil {
 		return err
 	}
 
-	config_promise.Then(
-		&[]js.Func{js.FuncOf(func(
+	config_promise.Then2(
+		js.FuncOf(func(
 			this js.Value,
 			args []js.Value,
 		) interface{} {
 			psucc <- true
 			return false
 		},
-		)}[0],
-		&[]js.Func{js.FuncOf(func(
+		),
+		js.FuncOf(func(
 			this js.Value,
 			args []js.Value,
 		) interface{} {
 			perr <- true
 			return false
 		},
-		)}[0],
+		),
 	)
 
 	select {
@@ -325,7 +325,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".nhentai.net",
 
 		".lurkmore.to",
-		".vk.com",
+		// ".vk.com",
 		".mail.ru",
 
 		".opennet.ru",
@@ -516,7 +516,7 @@ func (self *ProxySwitcherExtension) RenderMainWindow(
 
 		window_document := args[0].Get("document")
 
-		pexu_dom_document := &pexu_dom.Document{&window_document}
+		pexu_dom_document := &pexu_dom.Document{window_document}
 
 		etc := elementtreeconstructor.NewElementTreeConstructor(pexu_dom_document)
 

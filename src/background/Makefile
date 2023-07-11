@@ -1,6 +1,14 @@
-all:
-		# gopherjs build -v -o background.js .
+export GONOPROXY=github.com/AnimusPEXUS/*
+export GOOS=js
+export GOARCH=wasm
+
+
+all: get build
+
+get:
+		go get -u -v "./..."
+		go mod tidy
+
+build:
 		-rm background.wasm
-		GOOS=js GOARCH=wasm go build -v -o background.wasm
-		#gzip -9 background.wasm
-		#mv background.wasm.gz background.wasm
+		go build -v -o background.wasm
