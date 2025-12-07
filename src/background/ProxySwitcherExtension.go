@@ -272,6 +272,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".thepiratebay.org",
 
 		".protonmail.com",
+		".proton.me",
 
 		".google.com",
 		".googleapis.com",
@@ -293,7 +294,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".animespirit.online",
 		".animespirit.cc",
 
-		".anilibria.tv",
+		".animevost.org",
 
 		".golang.org",
 		"design.firefox.com",
@@ -325,8 +326,6 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".nhentai.net",
 
 		".lurkmore.to",
-		// ".vk.com",
-		".mail.ru",
 
 		".opennet.ru",
 		".linux.org.ru",
