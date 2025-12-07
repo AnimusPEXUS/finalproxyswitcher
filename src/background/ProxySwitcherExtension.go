@@ -329,6 +329,11 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 
 		".opennet.ru",
 		".linux.org.ru",
+
+		".youtube.com",
+		".ytimg.com",
+		// ".googlevideo.com",
+		".ggpht.com",
 	} {
 
 		c := i
