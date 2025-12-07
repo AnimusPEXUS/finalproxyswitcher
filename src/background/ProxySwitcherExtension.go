@@ -332,7 +332,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 
 		".youtube.com",
 		".ytimg.com",
-		// ".googlevideo.com",
+		".googlevideo.com",
 		".ggpht.com",
 	} {
 
