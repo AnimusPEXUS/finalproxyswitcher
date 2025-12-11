@@ -334,6 +334,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".ytimg.com",
 		".googlevideo.com",
 		".ggpht.com",
+		".youtu.be",
 	} {
 
 		c := i
