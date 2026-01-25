@@ -284,10 +284,6 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 
 		".atlassian.com",
 
-		".telegra.ph",
-		".t.me",
-		".telegram.org",
-
 		".linkedin.com",
 
 		".animespirit.ru",
@@ -295,6 +291,8 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".animespirit.cc",
 
 		".animevost.org",
+
+		".mangaread.org",
 
 		".golang.org",
 		"design.firefox.com",

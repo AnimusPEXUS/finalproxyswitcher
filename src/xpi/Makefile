@@ -1,4 +1,4 @@
-VERSION=0.7.1.11
+VERSION=0.7.1.12
 
 all:
 
