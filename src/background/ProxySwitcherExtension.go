@@ -322,6 +322,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".hentai4manga.com",
 		".xuk.life",
 		".nhentai.net",
+		".itch.io",
 
 		".lurkmore.to",
 
