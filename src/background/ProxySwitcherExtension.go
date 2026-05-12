@@ -264,44 +264,36 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 	}
 
 	for _, i := range []string{
+		// tor
 		".onion",
 		".torproject.org",
 
+		// networks
 		".cloudflare-dns.com",
 
+		// torrents
 		".thepiratebay.org",
 
-		".protonmail.com",
-		".proton.me",
-
+		// google, yt and android
 		".google.com",
 		".googleapis.com",
+
 		".chrome.com",
+
 		".developer.android.com",
 
-		".sourceforge.net",
-		".sf.net",
+		".youtube.com",
+		".ytimg.com",
+		".googlevideo.com",
+		".ggpht.com",
+		".youtu.be",
 
+		// programming, job
 		".atlassian.com",
 
 		".linkedin.com",
 
-		".animespirit.ru",
-		".animespirit.online",
-		".animespirit.cc",
-
-		".animevost.org",
-
-		".mangaread.org",
-
 		".golang.org",
-		"design.firefox.com",
-
-		".intel.com",
-		".drone.io",
-		".allelectronics.com",
-		".alldatasheet.com",
-
 		".dub.pm",
 
 		".github.com",
@@ -312,28 +304,51 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".slack-edge.com",
 		".slack-redir.net",
 
-		".origin.com",
-		".ea.com",
+		"design.firefox.com",
+		".mozilla.org",
+
+		".freecad.org",
+
+		// software
+		".sourceforge.net",
+		".sf.net",
+
+		// datasheets, hardware
+		".intel.com",
+		".drone.io",
+		".allelectronics.com",
+		".alldatasheet.com",
+
+		// anime
+		".animespirit.ru",
+		".animespirit.online",
+		".animespirit.cc",
+
+		".animevost.org",
+
+		".mangaread.org",
+
+		// communication
+		".protonmail.com",
+		".proton.me",
 
 		".facebook.com",
 		".fbcdn.net",
 
+		// games
+		".origin.com",
+		".ea.com",
+		".itch.io",
+
+		// other
 		".xvideos.com",
 		".hentai4manga.com",
 		".xuk.life",
 		".nhentai.net",
-		".itch.io",
-
 		".lurkmore.to",
 
 		".opennet.ru",
 		".linux.org.ru",
-
-		".youtube.com",
-		".ytimg.com",
-		".googlevideo.com",
-		".ggpht.com",
-		".youtu.be",
 	} {
 
 		c := i
