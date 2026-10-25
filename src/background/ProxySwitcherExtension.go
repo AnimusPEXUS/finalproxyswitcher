@@ -323,6 +323,8 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".animespirit.ru",
 		".animespirit.online",
 		".animespirit.cc",
+		".kodikplayer.com",
+		".kodikres.com",
 
 		".animevost.org",
 
