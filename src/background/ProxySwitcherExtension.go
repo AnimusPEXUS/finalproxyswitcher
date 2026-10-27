@@ -334,6 +334,7 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".wamanga.ru",
 		".mangatown.com",
 		".mangapill.com",
+		".mangahere.org",
 
 		// communication
 		".protonmail.com",
