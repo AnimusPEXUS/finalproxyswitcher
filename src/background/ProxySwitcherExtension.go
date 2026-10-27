@@ -270,6 +270,8 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 
 		// networks
 		".cloudflare-dns.com",
+		".cloudflareinsights.com",
+		".cloudflare.com",
 
 		// torrents
 		".thepiratebay.org",
@@ -329,6 +331,9 @@ func (self *ProxySwitcherExtension) BrowserProxyOnRequestHandler(
 		".animevost.org",
 
 		".mangaread.org",
+		".wamanga.ru",
+		".mangatown.com",
+		".mangapill.com",
 
 		// communication
 		".protonmail.com",
